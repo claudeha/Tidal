@@ -1,0 +1,14 @@
+diff --git a/hugs98-98.200609.21/hsc2hs/template-hsc.h b/hugs98-98.200609.21/hsc2hs/template-hsc.h
+index bdc34ed..884602b 100644
+--- a/hugs98-98.200609.21/hsc2hs/template-hsc.h
++++ b/hugs98-98.200609.21/hsc2hs/template-hsc.h
+@@ -72,6 +72,9 @@
+ #define hsc_size(t) \
+     printf("(%ld)", (long) sizeof(t));
+ 
++#define hsc_alignment(t) \
++    printf("(%ld)", (long) __alignof(t));
++
+ #define hsc_enum(t, f, print_name, x)         \
+     print_name;                               \
+     printf (" :: %s\n", #t);                  \
