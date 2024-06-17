@@ -62,7 +62,7 @@ streamList s = do pMap <- readMVar (sPMapMV s)
 streamReplace :: Stream -> ID -> ControlPattern -> IO ()
 streamReplace stream k pat = pat `seq` do
                   t <- Clock.getCycleTime (cClockConfig $ sConfig stream) (sClockRef stream)
-                  E.handle (\ (e :: E.SomeException) -> do
+                  E.handle (\e -> do
                     hPutStrLn stderr $ "Failed to Stream.streamReplace: " ++ show e
                     hPutStrLn stderr $ "Return to previous pattern."
                     setPreviousPatternOrSilence (sPMapMV stream)) (updatePattern stream k t pat)
