@@ -87,7 +87,7 @@ doTick :: MVar ValueMap                           -- pattern state
        -> Clock.LinkOperations                    -- ableton link operations
        -> IO ()
 doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
-  E.handle (\ (e :: E.SomeException) -> do
+  E.handle (\e -> do
     hPutStrLn stderr $ "Failed to Stream.doTick: " ++ show e
     hPutStrLn stderr $ "Return to previous pattern."
     setPreviousPatternOrSilence playMV) (do
@@ -116,7 +116,7 @@ doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
               let latency = oLatency target
                   ms = concatMap (\e ->  concatMap (toOSC busses e) oscs) tes
               -- send the events to the OSC target
-              forM_ ms $ \m -> (send listen cx latency extraLatency m) `E.catch` \(e :: E.SomeException) ->
+              forM_ ms $ \m -> (send listen cx latency extraLatency m) `E.catch` \e ->
                 hPutStrLn stderr $ "Failed to send. Is the '" ++ oName target ++ "' target running? " ++ show e
       putMVar stateMV sMap'')
 

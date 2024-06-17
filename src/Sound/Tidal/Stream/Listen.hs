@@ -46,7 +46,7 @@ openListener c
         run = do sock <- O.udpServer (cCtrlAddr c) (cCtrlPort c)
                  when (cCtrlBroadcast c) $ N.setSocketOption (O.udpSocket sock) N.Broadcast 1
                  return $ Just sock
-        catchAny :: IO a -> (E.SomeException -> IO a) -> IO a
+        catchAny :: IO a -> (E.Exception -> IO a) -> IO a
         catchAny = E.catch
 
 -- Listen to and act on OSC control messages
