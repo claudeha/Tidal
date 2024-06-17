@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE GADTs              #-}
-{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wall -fno-warn-orphans -fno-warn-unused-do-bind #-}
@@ -152,7 +151,7 @@ tShow a = "can't happen? " ++ show a
 
 
 toPat :: (Parseable a, Enumerable a) => TPat a -> Pattern a
-toPat = \case
+toPat a = case a of
    TPat_Atom (Just loc) x -> setContext (Context [loc]) $ pure x
    TPat_Atom Nothing x -> pure x
    TPat_Fast t x -> fast (toPat t) $ toPat x
