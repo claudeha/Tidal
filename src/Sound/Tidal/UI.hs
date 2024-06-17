@@ -35,8 +35,7 @@
 
 module Sound.Tidal.UI where
 
-import           Prelude               hiding ((*>), (<*))
-
+import           Control.Applicative   (Applicative, pure, (<$>), (<*>))
 import           Data.Bits             (Bits, shiftL, shiftR, testBit, xor)
 import           Data.Char             (digitToInt, isDigit, ord)
 

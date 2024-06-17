@@ -23,8 +23,7 @@ module Sound.Tidal.Control where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Prelude                  hiding ((*>), (<*))
-
+import           Control.Applicative      (pure, (<$>))
 import qualified Data.Map.Strict          as Map
 import           Data.Maybe               (fromJust, fromMaybe, isJust)
 import           Data.Ratio

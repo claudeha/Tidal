@@ -19,6 +19,7 @@
 
 module Sound.Tidal.Stepwise where
 
+import           Control.Applicative ((<$>), (<*>))
 import           Data.List           (sort, transpose)
 import           Data.Maybe          (catMaybes, fromMaybe, isJust)
 

@@ -24,9 +24,7 @@ module Sound.Tidal.Pattern (module Sound.Tidal.Pattern,
                            )
 where
 
-import           Prelude             hiding ((*>), (<*))
-
-import           Control.Applicative (liftA2)
+import           Control.Applicative (Applicative, liftA2, pure, (<$>), (<*>))
 import           Data.Fixed          (mod')
 import           Data.List           (delete, findIndex, intersperse, sortBy, (\\))
 import qualified Data.Map.Strict     as Map

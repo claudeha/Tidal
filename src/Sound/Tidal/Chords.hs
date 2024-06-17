@@ -18,6 +18,7 @@ module Sound.Tidal.Chords where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
+import Control.Applicative ((<$>))
 import Data.Maybe
 
 import Sound.Tidal.Pattern

@@ -20,8 +20,7 @@
 
 module Sound.Tidal.Core where
 
-import           Prelude             hiding ((*>), (<*))
-
+import           Control.Applicative (Applicative, pure, (<$>), (<*>))
 import           Data.Fixed          (mod')
 import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (fromMaybe)

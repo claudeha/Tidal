@@ -1,7 +1,6 @@
 module Sound.Tidal.Transition where
 
-import           Prelude                   hiding ((*>), (<*))
-
+import           Control.Applicative       (pure, (<$>))
 import           Control.Concurrent.MVar   (readMVar, swapMVar)
 
 import qualified Data.Map.Strict           as Map

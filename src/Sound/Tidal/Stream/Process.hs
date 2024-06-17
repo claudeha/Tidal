@@ -23,7 +23,7 @@ module Sound.Tidal.Stream.Process where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Control.Applicative       ((<|>))
+import           Control.Applicative       (pure, (<$>), (<|>))
 import           Control.Concurrent.MVar
 import qualified Control.Exception         as E
 import           Control.Monad             (forM_, when)

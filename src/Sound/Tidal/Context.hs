@@ -18,8 +18,6 @@ module Sound.Tidal.Context (module C) where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Prelude                hiding ((*>), (<*))
-
 import           Data.Ratio             as C
 
 import           Sound.Tidal.Control    as C
