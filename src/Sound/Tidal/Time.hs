@@ -1,12 +1,7 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-
 module Sound.Tidal.Time where
 
 import           Control.Applicative
-import           Control.DeepSeq     (NFData)
 import           Data.Ratio
-import           GHC.Generics
 
 -- | Time is rational
 type Time = Rational
@@ -15,15 +10,16 @@ type Time = Rational
 data ArcF a = Arc
   { start :: a
   , stop  :: a
-  } deriving (Eq, Ord, Functor, Show, Generic)
+  } deriving (Eq, Ord)
+
+instance Functor ArcF where
+  fmap f (Arc a b) = Arc (f a) (f b)
 
 type Arc = ArcF Time
 
 instance Applicative ArcF where
   pure t = Arc t t
   (<*>) (Arc sf ef) (Arc sx ex) = Arc (sf sx) (ef ex)
-
-instance NFData a => NFData (ArcF a)
 
 instance Num a => Num (ArcF a) where
   negate      = fmap negate

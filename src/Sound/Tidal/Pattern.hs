@@ -1,8 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-
@@ -31,17 +27,12 @@ where
 import           Prelude             hiding ((*>), (<*))
 
 import           Control.Applicative (liftA2)
-import           Control.DeepSeq     (NFData)
-import           Control.Monad       ((>=>))
-import           Data.Data           (Data)
 import           Data.Fixed          (mod')
 import           Data.List           (delete, findIndex, (\\))
 import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (catMaybes, fromJust, isJust, mapMaybe)
 import           Data.Monoid
-import           Data.Typeable       (Typeable)
 import           Data.Word           (Word8)
-import           GHC.Generics        (Generic)
 
 import           Sound.Tidal.Time
 
@@ -55,9 +46,9 @@ data State = State {arc      :: Arc,
 
 -- | A datatype representing events taking place over time
 data Pattern a = Pattern {query :: State -> [Event a], tactus :: Maybe Rational, pureValue :: Maybe a}
-  deriving (Generic, Functor)
 
-instance NFData a => NFData (Pattern a)
+instance Functor Pattern where
+  fmap f (Pattern q t v) = Pattern (fmap (fmap f) . q) t (fmap f v)
 
 pattern :: (State -> [Event a]) -> Pattern a
 pattern f = Pattern f Nothing Nothing
@@ -821,8 +812,7 @@ instance Stringy String where
 
 -- | Some context for an event, currently just position within sourcecode
 data Context = Context {contextPosition :: [((Int, Int), (Int, Int))]}
-  deriving (Eq, Ord, Generic)
-instance NFData Context
+  deriving (Eq, Ord)
 
 -- | An event is a value that's active during a timespan. If a whole
 -- is present, the part should be equal to or fit inside it.
@@ -831,8 +821,10 @@ data EventF a b = Event
   , whole   :: Maybe a
   , part    :: a
   , value   :: b
-  } deriving (Eq, Ord, Functor, Generic)
-instance (NFData a, NFData b) => NFData (EventF a b)
+  } deriving (Eq, Ord)
+
+instance Functor (EventF a) where
+  fmap f (Event c w p v) = Event c w p (f v)
 
 type Event a = EventF (ArcF Time) a
 
@@ -931,20 +923,70 @@ data Value = VS { svalue :: String   }
            | VPattern {pvalue :: Pattern Value}
            | VList {lvalue :: [Value]}
            | VState {statevalue :: ValueMap -> (ValueMap, Value)}
-           deriving (Typeable, Generic)
 
 class Valuable a where
   toValue :: a -> Value
-instance NFData Value
 
 newtype ValueMap = VM{ unVM :: Map.Map String Value }
   deriving (Eq, Ord)
 
 -- | Note is Double, but with a different parser
 newtype Note = Note { unNote :: Double }
-  deriving (Typeable, Data, Generic, Eq, Ord, Enum, Num, Fractional, Floating, Real, RealFrac)
+  deriving (Eq, Ord)
 
-instance NFData Note
+instance Enum Note where
+  succ = Note . succ . unNote
+  pred = Note . pred . unNote
+  toEnum = Note . toEnum
+  fromEnum = fromEnum . unNote
+  enumFrom (Note a) = fmap Note (enumFrom a)
+  enumFromThen (Note a) (Note b) = fmap Note (enumFromThen a b)
+  enumFromTo (Note a) (Note b) = fmap Note (enumFromTo a b)
+  enumFromThenTo (Note a) (Note b) (Note c) = fmap Note (enumFromThenTo a b c)
+
+instance Num Note where
+  Note a + Note b = Note (a + b)
+  Note a - Note b = Note (a - b)
+  Note a * Note b = Note (a * b)
+  negate (Note a) = Note (negate a)
+  abs (Note a) = Note (abs a)
+  signum (Note a) = Note (signum a)
+  fromInteger = Note . fromInteger
+
+instance Fractional Note where
+  Note a / Note b = Note (a / b)
+  recip = Note . recip . unNote
+  fromRational = Note . fromRational
+
+instance Floating Note where
+  pi = Note pi
+  exp = Note . exp . unNote
+  log = Note . log . unNote
+  sqrt = Note . sqrt . unNote
+  Note a ** Note b = Note (a ** b)
+  logBase (Note a) (Note b) = Note (logBase a b)
+  sin = Note . sin . unNote
+  cos = Note . cos . unNote
+  tan = Note . tan . unNote
+  asin = Note . asin . unNote
+  acos = Note . acos . unNote
+  atan = Note . atan . unNote
+  sinh = Note . sinh . unNote
+  cosh = Note . cosh . unNote
+  tanh = Note . tanh . unNote
+  asinh = Note . asinh . unNote
+  acosh = Note . acosh . unNote
+  atanh = Note . atanh . unNote
+
+instance Real Note where
+  toRational (Note n) = toRational n
+
+instance RealFrac Note where
+  properFraction (Note n) = case properFraction n of (i, f) -> (i, Note f)
+  truncate (Note n) = truncate n
+  round (Note n) = round n
+  ceiling (Note n) = ceiling n
+  floor (Note n) = floor n
 
 instance Show Note where
   show n = (show . unNote $ n) ++ "n (" ++ pitchClass ++ octave ++ ")"

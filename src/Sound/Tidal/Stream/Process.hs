@@ -1,10 +1,7 @@
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE StandaloneDeriving         #-}
 
 module Sound.Tidal.Stream.Process where
 
