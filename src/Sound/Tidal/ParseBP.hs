@@ -315,6 +315,7 @@ enumFromThenTo' :: (Ord a, Enum a, Num a) => a -> a -> a -> Pattern a
 enumFromThenTo' a b c | a > c = fastFromList $ reverse $ enumFromThenTo c (c + (a-b)) a
                       | otherwise = fastFromList $ enumFromThenTo a b c
 
+{-
 type ColourD = Colour Double
 
 instance Parseable ColourD where
@@ -324,6 +325,7 @@ instance Parseable ColourD where
 instance Enumerable ColourD where
   fromTo a b = fastFromList [a,b]
   fromThenTo a b c = fastFromList [a,b,c]
+-}
 
 instance (Enumerable a, Parseable a) => IsString (Pattern a) where
   fromString = parseBP_E
@@ -570,10 +572,12 @@ parseNote = do n <- notenum
 fromNote :: Num a => Pattern String -> Pattern a
 fromNote pat = fromRight 0 . runParser parseNote 0 "" <$> pat
 
+{-
 pColour :: MyParser (TPat ColourD)
 pColour = wrapPos $ do name <- many1 letter <?> "colour name"
                        colour <- readColourName name <?> "known colour"
                        return $ TPat_Atom Nothing colour
+-}
 
 pMult :: TPat a -> MyParser (TPat a)
 pMult thing = do char '*'
