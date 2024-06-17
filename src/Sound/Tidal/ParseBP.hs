@@ -30,11 +30,9 @@ module Sound.Tidal.ParseBP where
 
 import           Control.Applicative                    ()
 import qualified Control.Exception                      as E
-import           Data.Bifunctor                         (first)
 import           Data.Colour
 import           Data.Colour.Names
 import           Data.Functor.Identity                  (Identity)
-import           Data.List                              (intercalate)
 import           Data.Maybe
 import           Data.Ratio
 import           Data.Typeable                          (Typeable)
@@ -43,7 +41,7 @@ import           Sound.Tidal.Chords
 import           Sound.Tidal.Core
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.UI
-import           Sound.Tidal.Utils                      (fromRight)
+import           Sound.Tidal.Utils                      (fromRight, intercalate, mapFst)
 import           Text.Parsec.Error
 import qualified Text.Parsec.Prim
 import           Text.ParserCombinators.Parsec
@@ -396,7 +394,7 @@ pSequence f = do
           where (foot, pats') = takeFoot pats
                 takeFoot []                 = ([], [])
                 takeFoot (TPat_Foot:pats'') = ([], pats'')
-                takeFoot (pat:pats'')       = first (pat:) $ takeFoot pats''
+                takeFoot (pat:pats'')       = mapFst (pat:) $ takeFoot pats''
 
 pRepeat :: TPat a -> MyParser (TPat a)
 pRepeat a = do es <- many1 $ do char '!'
