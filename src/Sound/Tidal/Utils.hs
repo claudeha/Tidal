@@ -18,7 +18,8 @@ module Sound.Tidal.Utils where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Data.List (delete)
+import           Data.List (delete, intersperse, sortBy)
+import           Data.Ord  (comparing)
 import           System.IO (hPutStrLn, stderr)
 
 import           Data.Set  (Set)
@@ -137,3 +138,20 @@ nubOrdOnExcluding f = go
       | otherwise = x : go (Set.insert fx s) xs
       where fx = f x
 
+
+-- The following are from the base package:
+-- https://hackage.haskell.org/package/base
+
+-- in Data.List (since base-4.8.0.0), but not for Hugs
+sortOn :: Ord b => (a -> b) -> [a] -> [a]
+sortOn f =
+  map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq
+
+-- in Data.List, but not for Hugs
+intercalate :: [a] -> [[a]] -> [a]
+intercalate xs xss = concat (intersperse xs xss)
+
+-- in Control.Monad, but not for Hugs
+infixr 1 >=>
+(>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
+f >=> g = \x -> f x >>= g
