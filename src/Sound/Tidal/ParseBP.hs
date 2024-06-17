@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# OPTIONS_GHC -Wall -fno-warn-orphans -fno-warn-unused-do-bind #-}
 
 module Sound.Tidal.ParseBP where
@@ -327,8 +326,7 @@ instance Enumerable ColourD where
   fromThenTo a b c = fastFromList [a,b,c]
 -}
 
-instance (Enumerable a, Parseable a) => IsString (Pattern a) where
-  fromString = parseBP_E
+fromString s = parseBP_E s
 
 lexer   = P.makeTokenParser haskellDef
 
