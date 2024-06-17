@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Sound.Tidal.Utils where
 
 {-
@@ -136,5 +135,5 @@ nubOrdOnExcluding f = go
     go s (x:xs)
       | fx `Set.member` s = go s xs
       | otherwise = x : go (Set.insert fx s) xs
-      where !fx = f x
+      where fx = f x
 
