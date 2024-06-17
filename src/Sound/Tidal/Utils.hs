@@ -1,6 +1,4 @@
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP          #-}
-
 module Sound.Tidal.Utils where
 
 {-
@@ -28,10 +26,6 @@ import           Data.Set  (Set)
 import qualified Data.Set  as Set
 -- import qualified Data.IntSet as IntSet
 -- import Data.IntSet (IntSet)
-#ifdef __GLASGOW_HASKELL__
-import           GHC.Exts  (build)
-#endif
-
 
 writeError :: String -> IO ()
 writeError = hPutStrLn stderr
@@ -144,34 +138,3 @@ nubOrdOnExcluding f = go
       | otherwise = x : go (Set.insert fx s) xs
       where !fx = f x
 
-#ifdef __GLASGOW_HASKELL__
-{-# INLINABLE [1] nubOrdOnExcluding #-}
-
-{-# RULES
--- Rewrite to a fusible form.
-"nubOrdOn" [~1] forall f as s. nubOrdOnExcluding  f s as =
-  build (\c n -> foldr (nubOrdOnFB f c) (constNubOn n) as s)
-
--- Rewrite back to a plain form
-"nubOrdOnList" [1] forall f as s.
-    foldr (nubOrdOnFB f (:)) (constNubOn []) as s =
-       nubOrdOnExcluding f s as
- #-}
-
-nubOrdOnFB :: Ord b
-           => (a -> b)
-           -> (a -> r -> r)
-           -> a
-           -> (Set b -> r)
-           -> Set b
-           -> r
-nubOrdOnFB f c x r s
-  | fx `Set.member` s = r s
-  | otherwise = x `c` r (Set.insert fx s)
-  where !fx = f x
-{-# INLINABLE [0] nubOrdOnFB #-}
-
-constNubOn :: a -> b -> a
-constNubOn x _ = x
-{-# INLINE [0] constNubOn #-}
-#endif
