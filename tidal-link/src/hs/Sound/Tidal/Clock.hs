@@ -14,7 +14,6 @@ import Control.Monad.State    (StateT, liftIO, evalStateT, get, put, modify)
 
 import Foreign.C.Types        (CDouble (..))
 import Data.Int               (Int64)
-import Data.Coerce            (coerce)
 import System.IO              (hPutStrLn, stderr)
 
 type Time = Rational
@@ -129,6 +128,7 @@ initClock config ac = do
       return (ClockMemory config (ClockRef clockMV abletonLink) ac, st)
   where processAhead = round $ (cProcessAhead config) * 1000000
         bpm = (coerce defaultCps) * 60 * (cBeatsPerCycle config)
+        coerce = realToFrac
 
 
 -- The reference time Link uses,
