@@ -48,7 +48,6 @@ import qualified Data.Map.Strict       as Map
 import           Data.Maybe            (catMaybes, fromJust, fromMaybe, isJust,
                                         mapMaybe)
 import           Data.Ratio            (Ratio, (%))
-import qualified Data.Text             as T
 
 import           Sound.Tidal.Bjorklund (bjorklund)
 import           Sound.Tidal.Core
@@ -1358,10 +1357,12 @@ slowstripe n = slow (toRational <$> n) . stripe n
 -- Lindenmayer patterns, these go well with the step sequencer
 -- general rule parser (strings map to strings)
 parseLMRule :: String -> [(String,String)]
-parseLMRule s = map (splitOn ':') commaSplit
+parseLMRule = map (splitOn ':') . commaSplit
   where splitOn sep str = splitAt (fromJust $ elemIndex sep str)
                             $ filter (/= sep) str
-        commaSplit = map T.unpack $ T.splitOn (T.pack ",") $ T.pack s
+        commaSplit s = case break (== ',') s of
+          (pre, ',':post) -> pre : commaSplit post
+          (pre, []) -> [pre]
 
 -- specific parser for step sequencer (chars map to string)
 -- ruleset in form "a:b,b:ab"
