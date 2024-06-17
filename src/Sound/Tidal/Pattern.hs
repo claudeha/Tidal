@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -334,7 +333,7 @@ instance Monoid (Pattern a) where
   mempty = empty
 
 instance Semigroup (Pattern a) where
-  (<>) !p !p' = pattern $ \st -> query p st ++ query p' st
+  (<>) p p' = p `seq` p' `seq` (pattern $ \st -> query p st ++ query p' st)
 
 instance (Num a, Ord a) => Real (Pattern a) where
   toRational = noOv "toRational"

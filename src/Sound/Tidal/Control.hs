@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -369,7 +368,7 @@ loopAt n p = slow n p |* P.speed (fromRational <$> (1/n)) # P.unit (pure "c")
   > d1 $ every 2 (hurry 2) $ sound "bd sn:2 ~ cp"
 -}
 hurry :: Pattern Rational -> ControlPattern -> ControlPattern
-hurry !x = (|* P.speed (fromRational <$> x)) . fast x
+hurry x = x `seq` ((|* P.speed (fromRational <$> x)) . fast x)
 
 {- | @smash@ is a combination of `spread` and `striate` — it cuts the samples
 into the given number of bits, and then cuts between playing the loop

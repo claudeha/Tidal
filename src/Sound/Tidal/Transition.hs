@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 module Sound.Tidal.Transition where
 
 import           Prelude                   hiding ((*>), (<*))
@@ -44,7 +42,7 @@ type TransitionMapper = Time -> [ControlPattern] -> ControlPattern
 -- Evaluation of pat is forced so exceptions are picked up here, before replacing the existing pattern.
 -- the "historyFlag" determines if the new pattern should be placed on the history stack or not
 transition :: Stream -> Bool -> TransitionMapper -> ID -> ControlPattern -> IO ()
-transition stream historyFlag mapper patId !pat = do
+transition stream historyFlag mapper patId pat = pat `seq` do
             let
               appendPat flag = if flag then (pat:) else id
               updatePS (Just playState) = playState {psHistory = (appendPat historyFlag) (psHistory playState)}

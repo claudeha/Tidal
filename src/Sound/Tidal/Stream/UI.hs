@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Sound.Tidal.Stream.UI where
 
@@ -60,7 +59,7 @@ streamList s = do pMap <- readMVar (sPMapMV s)
         showKV False (k, _) = "(" ++ k ++ ") - muted\n"
 
 streamReplace :: Stream -> ID -> ControlPattern -> IO ()
-streamReplace stream k !pat = do
+streamReplace stream k pat = pat `seq` do
                   t <- Clock.getCycleTime (cClockConfig $ sConfig stream) (sClockRef stream)
                   E.handle (\ (e :: E.SomeException) -> do
                     hPutStrLn stderr $ "Failed to Stream.streamReplace: " ++ show e

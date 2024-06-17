@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -306,7 +305,7 @@ onSingleTick config clockRef stateMV busMV _ globalFMV cxs listen pat = do
 
 -- Used for Tempo callback
 updatePattern :: Stream -> ID -> Time -> ControlPattern -> IO ()
-updatePattern stream k !t pat = do
+updatePattern stream k t pat = t `seq` do
   let x = queryArc pat (Arc 0 0)
   pMap <- seq x $ takeMVar (sPMapMV stream)
   let playState = updatePS $ Map.lookup (fromID k) pMap
