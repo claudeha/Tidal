@@ -2,8 +2,8 @@ module Control.Concurrent.Compat
   ( module Control.Concurrent.Compat
   , module Control.Concurrent.STM
   , module Control.Concurrent
-  )
-import Control·Concurrent
+  ) where
+import Control.Concurrent
 import Control.Concurrent.STM
 
 import Control.Monad (unless)

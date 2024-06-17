@@ -145,7 +145,7 @@ nubOrdOnExcluding f = go
 -- in Data.List (since base-4.8.0.0), but not for Hugs
 sortOn :: Ord b => (a -> b) -> [a] -> [a]
 sortOn f =
-  map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq
+  map snd . sortBy (comparing fst) . map (\x -> let y = f x in y `seq` (y, x))
 
 -- in Data.List, but not for Hugs
 intercalate :: [a] -> [[a]] -> [a]
