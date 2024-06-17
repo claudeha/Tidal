@@ -27,7 +27,6 @@ import           Control.Applicative       (pure, (<$>), (<|>))
 import           Control.Concurrent.MVar
 import qualified Control.Exception         as E
 import           Control.Monad             (forM_, when)
-import           Data.Coerce               (coerce)
 import qualified Data.Map.Strict           as Map
 import           Data.Maybe                (catMaybes, fromJust, fromMaybe)
 import           Foreign.C.Types
@@ -35,7 +34,6 @@ import           System.IO                 (hPutStrLn, stderr)
 
 import qualified Sound.Osc.Fd              as O
 
-import           Data.List                 (sortOn)
 import qualified Sound.Tidal.Clock         as Clock
 import           Sound.Tidal.Core          (stack, (#))
 import           Sound.Tidal.ID
@@ -99,6 +97,7 @@ doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
       let
         patstack = sGlobalF $ playStack pMap
         cps = ((Clock.beatToCycles ops) bpm) / 60
+        coerce = realToFrac
         sMap' = VM $ Map.insert "_cps" (VF $ coerce cps) (unVM sMap)
         extraLatency = nudge
         -- First the state is used to query the pattern
@@ -136,6 +135,7 @@ processCps ops = mapM processEvent
       onPart <- (Clock.timeAtBeat ops) partStartBeat
       when (eventHasOnset e) (do
         let cps' = Map.lookup "cps" (unVM $ value e) >>= getF
+            coerce = fmap realToFrac
         maybe (return ()) (\newCps -> (Clock.setTempo ops) ((Clock.cyclesToBeat ops) (newCps * 60)) on) $ coerce cps'
         )
       off <- (Clock.timeAtBeat ops) offBeat
@@ -178,7 +178,8 @@ toOSC busses pe osc@(OSC _ _)
         -- Only events that start within the current nowArc are included
         playmsg | peHasOnset pe = do
                   -- If there is already cps in the event, the union will preserve that.
-                  let extra = Map.fromList [("cps", (VF (coerce $! peCps pe))),
+                  let coerce = realToFrac
+                      extra = Map.fromList [("cps", (VF (coerce $! peCps pe))),
                                           ("delta", VF (Clock.addMicrosToOsc (peDelta pe) 0)),
                                           ("cycle", VF (fromRational (peCycle pe)))
                                         ]
