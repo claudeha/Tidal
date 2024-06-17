@@ -1,0 +1,121 @@
+diff --git a/tidal-link/src/hs/Sound/Tidal/Link.c b/tidal-link/src/hs/Sound/Tidal/Link.c
+index 53cd1934..59f38ba9 100644
+--- a/tidal-link/src/hs/Sound/Tidal/Link.c
++++ b/tidal-link/src/hs/Sound/Tidal/Link.c
+@@ -20,7 +20,7 @@ static void hugsprim_abl_link_force_beat_at_time_12(HugsStackPtr hugs_root)
+     arg2 = hugs->getDouble();
+     arg3 = hugs->getInt64();
+     arg4 = hugs->getDouble();
+-    abl_link_force_beat_at_time(arg1, arg2, arg3, arg4);
++    abl_link_force_beat_at_time((abl_link_session_state){arg1}, arg2, arg3, arg4);
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -40,7 +40,7 @@ static void hugsprim_abl_link_request_beat_at_time_11(HugsStackPtr hugs_root)
+     arg2 = hugs->getDouble();
+     arg3 = hugs->getInt64();
+     arg4 = hugs->getDouble();
+-    abl_link_request_beat_at_time(arg1, arg2, arg3, arg4);
++    abl_link_request_beat_at_time((abl_link_session_state){arg1}, arg2, arg3, arg4);
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -58,7 +58,7 @@ static void hugsprim_abl_link_set_tempo_10(HugsStackPtr hugs_root)
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getDouble();
+     arg3 = hugs->getInt64();
+-    abl_link_set_tempo(arg1, arg2, arg3);
++    abl_link_set_tempo((abl_link_session_state){arg1}, arg2, arg3);
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -73,7 +73,7 @@ static void hugsprim_abl_link_tempo_9(HugsStackPtr hugs_root)
+     HsPtr arg1;
+     HsDouble res1;
+     arg1 = hugs->getPtr();
+-    res1 = abl_link_tempo(arg1);
++    res1 = abl_link_tempo((abl_link_session_state){arg1});
+     hugs->putDouble(res1);
+     hugs->returnIO(hugs_root,1);
+ }
+@@ -92,7 +92,7 @@ static void hugsprim_abl_link_time_at_beat_8(HugsStackPtr hugs_root)
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getDouble();
+     arg3 = hugs->getDouble();
+-    res1 = abl_link_time_at_beat(arg1, arg2, arg3);
++    res1 = abl_link_time_at_beat((abl_link_session_state){arg1}, arg2, arg3);
+     hugs->putInt64(res1);
+     hugs->returnIO(hugs_root,1);
+ }
+@@ -111,7 +111,7 @@ static void hugsprim_abl_link_beat_at_time_7(HugsStackPtr hugs_root)
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getInt64();
+     arg3 = hugs->getDouble();
+-    res1 = abl_link_beat_at_time(arg1, arg2, arg3);
++    res1 = abl_link_beat_at_time((abl_link_session_state){arg1}, arg2, arg3);
+     hugs->putDouble(res1);
+     hugs->returnIO(hugs_root,1);
+ }
+@@ -126,7 +126,7 @@ static void hugsprim_abl_link_clock_micros_6(HugsStackPtr hugs_root)
+     HsPtr arg1;
+     HsInt64 res1;
+     arg1 = hugs->getPtr();
+-    res1 = abl_link_clock_micros(arg1);
++    res1 = abl_link_clock_micros((abl_link){arg1});
+     hugs->putInt64(res1);
+     hugs->returnIO(hugs_root,1);
+ }
+@@ -140,7 +140,7 @@ static void hugsprim_abl_link_destroy_session_state_5(HugsStackPtr hugs_root)
+ {
+     HsPtr arg1;
+     arg1 = hugs->getPtr();
+-    abl_link_destroy_session_state(arg1);
++    abl_link_destroy_session_state((abl_link_session_state){arg1});
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -156,7 +156,7 @@ static void hugsprim_abl_link_commit_app_session_state_4(HugsStackPtr hugs_root)
+     HsPtr arg2;
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getPtr();
+-    abl_link_commit_app_session_state(arg1, arg2);
++    abl_link_commit_app_session_state((abl_link){arg1}, (abl_link_session_state){arg2});
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -172,7 +172,7 @@ static void hugsprim_abl_link_capture_app_session_state_3(HugsStackPtr hugs_root
+     HsPtr arg2;
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getPtr();
+-    abl_link_capture_app_session_state(arg1, arg2);
++    abl_link_capture_app_session_state((abl_link){arg1}, (abl_link_session_state){arg2});
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -185,7 +185,7 @@ static void hugsprim_abl_link_create_session_state_2(HugsStackPtr);
+ static void hugsprim_abl_link_create_session_state_2(HugsStackPtr hugs_root)
+ {
+     HsPtr res1;
+-    res1 = abl_link_create_session_state();
++    res1 = abl_link_create_session_state().impl;
+     hugs->putPtr(res1);
+     hugs->returnIO(hugs_root,1);
+ }
+@@ -201,7 +201,7 @@ static void hugsprim_abl_link_enable_1(HugsStackPtr hugs_root)
+     HsInt arg2;
+     arg1 = hugs->getPtr();
+     arg2 = hugs->getInt();
+-    abl_link_enable(arg1, arg2);
++    abl_link_enable((abl_link){arg1}, arg2);
+     
+     hugs->returnIO(hugs_root,0);
+ }
+@@ -216,7 +216,7 @@ static void hugsprim_abl_link_create_0(HugsStackPtr hugs_root)
+     HsDouble arg1;
+     HsPtr res1;
+     arg1 = hugs->getDouble();
+-    res1 = abl_link_create(arg1);
++    res1 = abl_link_create(arg1).impl;
+     hugs->putPtr(res1);
+     hugs->returnIO(hugs_root,1);
+ }
