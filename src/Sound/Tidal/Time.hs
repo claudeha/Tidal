@@ -21,7 +21,7 @@ instance Applicative ArcF where
   pure t = Arc t t
   (<*>) (Arc sf ef) (Arc sx ex) = Arc (sf sx) (ef ex)
 
-instance Num a => Num (ArcF a) where
+instance (Show (ArcF a), Num a) => Num (ArcF a) where
   negate      = fmap negate
   (+)         = liftA2 (+)
   (*)         = liftA2 (*)
@@ -29,7 +29,7 @@ instance Num a => Num (ArcF a) where
   abs         = fmap abs
   signum      = fmap signum
 
-instance (Fractional a) => Fractional (ArcF a) where
+instance (Num (ArcF a), Fractional a) => Fractional (ArcF a) where
   recip        = fmap recip
   fromRational = pure . fromRational
 
