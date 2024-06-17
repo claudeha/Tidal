@@ -26,10 +26,8 @@ import Sound.Tidal.Core ((#), (|*), (<~))
 import Sound.Tidal.Params (crush, gain, pan, speed, s)
 import Sound.Tidal.ParseBP (parseBP_E)
 import Sound.Tidal.Pattern (ControlPattern, silence, rev)
-import GHC.Exts ( IsString(..) )
 
-instance {-# OVERLAPPING #-} IsString ControlPattern where
-  fromString = s . parseBP_E
+fromString = s . parseBP_E
 
 crunch :: ControlPattern -> ControlPattern
 crunch = (# crush 3)
