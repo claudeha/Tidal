@@ -25,6 +25,7 @@ import           Prelude             hiding ((*>), (<*))
 import           Data.Fixed          (mod')
 import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (fromMaybe)
+import           Data.Monoid
 import           Sound.Tidal.Pattern
 
 -- ** Elemental patterns
@@ -398,7 +399,7 @@ which can thus be used as an infix operator equivalent of 'overlay':
 > d1 $ sound ("bd sn:2" <> "cp*3")
 -}
 overlay :: Pattern a -> Pattern a -> Pattern a
-overlay = (<>)
+overlay = mappend
 
 {- | 'stack' combines a list of 'Pattern's into a new pattern, so that their
 events are combined over time, i.e., all of the patterns in the list are played

@@ -38,6 +38,7 @@ import           Data.Fixed          (mod')
 import           Data.List           (delete, findIndex, (\\))
 import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (catMaybes, fromJust, isJust, mapMaybe)
+import           Data.Monoid
 import           Data.Typeable       (Typeable)
 import           Data.Word           (Word8)
 import           GHC.Generics        (Generic)
@@ -331,9 +332,7 @@ instance Enum a => Enum (Pattern a) where
 
 instance Monoid (Pattern a) where
   mempty = empty
-
-instance Semigroup (Pattern a) where
-  (<>) p p' = p `seq` p' `seq` (pattern $ \st -> query p st ++ query p' st)
+  mappend p p' = p `seq` p' `seq` (pattern $ \st -> query p st ++ query p' st)
 
 instance (Num a, Ord a) => Real (Pattern a) where
   toRational = noOv "toRational"
