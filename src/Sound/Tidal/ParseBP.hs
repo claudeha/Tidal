@@ -1,9 +1,6 @@
-{-# LANGUAGE CPP                #-}
-{-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wall -fno-warn-orphans -fno-warn-unused-do-bind #-}
 
 module Sound.Tidal.ParseBP where
@@ -27,40 +24,44 @@ module Sound.Tidal.ParseBP where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Control.Applicative                    ()
+import           Control.Applicative                    (Applicative, pure, (<$>), (<*>), (<*))
 import qualified Control.Exception                      as E
+{-
 import           Data.Colour
 import           Data.Colour.Names
-import           Data.Functor.Identity                  (Identity)
+-}
+import           Control.Monad                          (ap)
+import           Control.Monad.Identity                 (Identity)
 import           Data.Maybe
 import           Data.Ratio
-import           Data.Typeable                          (Typeable)
-import           GHC.Exts                               (IsString (..))
 import           Sound.Tidal.Chords
 import           Sound.Tidal.Core
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.UI
 import           Sound.Tidal.Utils                      (fromRight, intercalate, mapFst)
-import           Text.Parsec.Error
-import qualified Text.Parsec.Prim
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Language (haskellDef)
 import qualified Text.ParserCombinators.Parsec.Token    as P
 
+instance Eq ParseError
+
 data TidalParseError = TidalParseError {parsecError :: ParseError,
                                         code        :: String
                                        }
-  deriving (Eq, Typeable)
+  deriving (Eq)
 
-instance E.Exception TidalParseError
 
 instance Show TidalParseError where
   show err = "Syntax error in sequence:\n  \"" ++ code err ++ "\"\n  " ++ pointer ++ "  " ++ message
     where pointer = replicate (sourceColumn $ errorPos perr) ' ' ++ "^"
-          message = showErrorMessages "or" "unknown parse error" "expecting" "unexpected" "end of input" $ errorMessages perr
+          message = ""
           perr = parsecError err
 
-type MyParser = Text.Parsec.Prim.Parsec String Int
+type MyParser = GenParser Char Int
+
+instance Applicative MyParser where
+  pure = return
+  (<*>) = ap
 
 -- | AST representation of patterns
 
@@ -214,11 +215,11 @@ parseBP_E s = toE parsed
   where
     parsed = parseTPat s
     -- TODO - custom error
-    toE (Left e)   = E.throw $ TidalParseError {parsecError = e, code = s}
+    toE (Left e)   = error . show $ TidalParseError {parsecError = e, code = s}
     toE (Right tp) = toPat tp
 
 parseTPat :: Parseable a => String -> Either ParseError (TPat a)
-parseTPat = runParser (pSequence f' Prelude.<* eof) (0 :: Int) ""
+parseTPat = runParser (pSequence f' Control.Applicative.<* eof) (0 :: Int) ""
   where f' = do tPatParser
              <|> do oneOf "~-" <?> "rest"
                     return TPat_Silence
@@ -328,7 +329,6 @@ instance Enumerable ColourD where
 instance (Enumerable a, Parseable a) => IsString (Pattern a) where
   fromString = parseBP_E
 
-lexer :: P.GenTokenParser String u Data.Functor.Identity.Identity
 lexer   = P.makeTokenParser haskellDef
 
 braces, brackets, parens, angles:: MyParser a -> MyParser a
@@ -421,8 +421,8 @@ pPart :: Parseable a => MyParser (TPat a) -> MyParser (TPat a)
 pPart f = (pSingle f <|> pPolyIn f <|> pPolyOut f <|> pVar) >>= pE >>= pRand
 
 newSeed :: MyParser Int
-newSeed = do seed <- Text.Parsec.Prim.getState
-             Text.Parsec.Prim.modifyState (+1)
+newSeed = do seed <- getState
+             updateState (+1)
              return seed
 
 pPolyIn :: Parseable a => MyParser (TPat a) -> MyParser (TPat a)
