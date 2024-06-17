@@ -3,8 +3,11 @@ module Sound.Tidal.Clock where
 import qualified Sound.Tidal.Link as Link
 import qualified Sound.Osc.Fd as O
 
-import Control.Concurrent     (forkIO, threadDelay)
-import Control.Concurrent.STM (TVar, atomically, readTVar, newTVar, modifyTVar', swapTVar, retry)
+import Control.Concurrent.Compat
+                              ( forkIO, threadDelay
+                              , TVar, atomically, readTVar, newTVar, modifyTVar', swapTVar
+                              , retrying, retry, noRetry
+                              )
 import Control.Monad          (when)
 import Control.Monad.Reader   (ReaderT, runReaderT, ask)
 import Control.Monad.State    (StateT, liftIO, evalStateT, get, put, modify)
@@ -328,17 +331,21 @@ resetClock :: ClockRef -> IO ()
 resetClock clock = setClock clock 0
 
 setClock :: ClockRef -> Time -> IO ()
-setClock (ClockRef clock _) t = atomically $ do
+setClock (ClockRef clock _) t = retrying $ atomically $ do
                                       action <- readTVar clock
                                       case action of
-                                        NoAction -> modifyTVar' clock (const $ SetCycle t)
+                                        NoAction -> do
+                                          modifyTVar' clock (const $ SetCycle t)
+                                          noRetry
                                         _ -> retry
 
 setBPM :: ClockRef -> Time -> IO ()
-setBPM (ClockRef clock _) t = atomically $ do
+setBPM (ClockRef clock _) t = retrying $ atomically $ do
                                       action <- readTVar clock
                                       case action of
-                                        NoAction -> modifyTVar' clock (const $ SetTempo t)
+                                        NoAction -> do
+                                          modifyTVar' clock (const $ SetTempo t)
+                                          noRetry
                                         _ -> retry
 
 setCPS :: ClockConfig -> ClockRef -> Time -> IO ()
@@ -346,10 +353,12 @@ setCPS config ref cps = setBPM ref bpm
                        where bpm = cps * 60 * (toRational $ cBeatsPerCycle config)
 
 setNudge :: ClockRef -> Double -> IO ()
-setNudge (ClockRef clock _) n = atomically $ do
+setNudge (ClockRef clock _) n = retrying $ atomically $ do
                                       action <- readTVar clock
                                       case action of
-                                        NoAction -> modifyTVar' clock (const $ SetNudge n)
+                                        NoAction -> do
+                                          modifyTVar' clock (const $ SetNudge n)
+                                          noRetry
                                         _ -> retry
 
 disableLink :: ClockRef -> IO ()
