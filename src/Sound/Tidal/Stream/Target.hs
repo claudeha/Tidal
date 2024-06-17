@@ -1,10 +1,10 @@
 module Sound.Tidal.Stream.Target where
 
 import qualified Sound.Osc.Fd           as O
-import qualified Network.Socket         as N
+import qualified Network.Compat         as N
 import           Control.Applicative    ((<$>))
 import           Data.Maybe             (fromJust, isJust)
-import           Control.Concurrent     (forkOS, threadDelay)
+import           Control.Concurrent.Compat (forkOS, threadDelay)
 import           Foreign                (Word8)
 
 import           Sound.Tidal.Pattern

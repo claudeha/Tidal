@@ -5,7 +5,7 @@ import qualified Data.Map.Strict           as Map
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.Show          ()
 
-import qualified Network.Socket            as N
+import qualified Network.Compat            as N
 import qualified Sound.Osc.Fd              as O
 
 import qualified Sound.Tidal.Clock         as Clock
