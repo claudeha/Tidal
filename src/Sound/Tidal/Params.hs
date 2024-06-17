@@ -153,7 +153,7 @@ midinote :: Pattern Note -> ControlPattern
 midinote = note . (subtract 60 <$>)
 
 drum :: Pattern String -> ControlPattern
-drum = n . (subtract 60 . drumN <$>)
+drum = n . ((subtract 60 . drumN) <$>)
 
 drumN :: Num a => String -> a
 drumN "hq" = 27
