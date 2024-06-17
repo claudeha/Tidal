@@ -42,7 +42,7 @@ import           Sound.Tidal.Params        (pS)
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.Show          ()
 import           Sound.Tidal.Stream.Config
-import           Sound.Tidal.Utils         ((!!!))
+import           Sound.Tidal.Utils         ((!!!), sortOn)
 
 import           Sound.Tidal.Stream.Target
 import           Sound.Tidal.Stream.Types

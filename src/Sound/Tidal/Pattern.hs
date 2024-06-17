@@ -35,6 +35,7 @@ import           Data.Ratio          (denominator, numerator)
 import           Data.Word           (Word8)
 
 import           Sound.Tidal.Time
+import           Sound.Tidal.Utils   ((>=>), intercalate, sortOn)
 
 ------------------------------------------------------------------------
 -- * Types
