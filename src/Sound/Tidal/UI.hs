@@ -40,10 +40,9 @@ import           Prelude               hiding ((*>), (<*))
 import           Data.Bits             (Bits, shiftL, shiftR, testBit, xor)
 import           Data.Char             (digitToInt, isDigit, ord)
 
-import           Data.Bool             (bool)
 import           Data.Fixed            (mod')
 import           Data.List             (elemIndex, findIndex, findIndices,
-                                        groupBy, intercalate, sort, sortOn,
+                                        groupBy, sort,
                                         transpose)
 import qualified Data.Map.Strict       as Map
 import           Data.Maybe            (catMaybes, fromJust, fromMaybe, isJust,

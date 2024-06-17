@@ -155,3 +155,7 @@ intercalate xs xss = concat (intersperse xs xss)
 infixr 1 >=>
 (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
 f >=> g = \x -> f x >>= g
+
+bool :: a -> a -> Bool -> a
+bool f _ False = f
+bool _ t True  = t
