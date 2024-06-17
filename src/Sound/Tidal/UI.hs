@@ -80,7 +80,10 @@ xorwise x =
 
 -- stretch 300 cycles over the range of [0,2**29 == 536870912) then apply the xorshift algorithm
 timeToIntSeed :: RealFrac a => a -> Int
-timeToIntSeed = xorwise . truncate . (* 536870912) . snd . (properFraction :: (RealFrac a => a -> (Int,a))) . (/ 300)
+timeToIntSeed = xorwise . truncate . (* 536870912) . snd . pf . (/ 300)
+  where
+    pf :: RealFrac b => b -> (Int,b)
+    pf = properFraction
 
 intSeedToRand :: Fractional a => Int -> a
 intSeedToRand = (/ 536870912) . realToFrac . (`mod` 536870912)
