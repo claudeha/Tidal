@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE GADTs              #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# OPTIONS_GHC -Wall -fno-warn-orphans -fno-warn-unused-do-bind #-}
 
@@ -65,23 +64,23 @@ instance Applicative MyParser where
 
 -- | AST representation of patterns
 
-data TPat a where
-   TPat_Atom :: (Maybe ((Int, Int), (Int, Int))) -> a -> (TPat a)
-   TPat_Fast :: (TPat Time) -> (TPat a) -> (TPat a)
-   TPat_Slow :: (TPat Time) -> (TPat a) -> (TPat a)
-   TPat_DegradeBy :: Int -> Double -> (TPat a) -> (TPat a)
-   TPat_CycleChoose :: Int -> [TPat a] -> (TPat a)
-   TPat_Euclid :: (TPat Int) -> (TPat Int) -> (TPat Int) -> (TPat a) -> (TPat a)
-   TPat_Stack :: [TPat a] -> (TPat a)
-   TPat_Polyrhythm :: (Maybe (TPat Rational)) -> [TPat a] -> (TPat a)
-   TPat_Seq :: [TPat a] -> (TPat a)
-   TPat_Silence :: (TPat a)
-   TPat_Foot :: (TPat a)
-   TPat_Elongate :: Rational -> (TPat a) -> (TPat a)
-   TPat_Repeat :: Int -> (TPat a) -> (TPat a)
-   TPat_EnumFromTo :: (TPat a) -> (TPat a) -> (TPat a)
-   TPat_Var :: String -> (TPat a)
-   TPat_Chord :: (Num b, Enum b, Parseable b, Enumerable b) => (b -> a) -> (TPat b) -> (TPat String) -> [TPat [Modifier]] -> (TPat a)
+data TPat a
+   = TPat_Atom (Maybe ((Int, Int), (Int, Int))) a
+   | TPat_Fast (TPat Time) (TPat a)
+   | TPat_Slow (TPat Time) (TPat a)
+   | TPat_DegradeBy Int Double (TPat a)
+   | TPat_CycleChoose Int [TPat a]
+   | TPat_Euclid (TPat Int) (TPat Int) (TPat Int) (TPat a)
+   | TPat_Stack [TPat a]
+   | TPat_Polyrhythm (Maybe (TPat Rational)) [TPat a]
+   | TPat_Seq [TPat a]
+   | TPat_Silence
+   | TPat_Foot
+   | TPat_Elongate Rational (TPat a)
+   | TPat_Repeat Int (TPat a)
+   | TPat_EnumFromTo (TPat a) (TPat a)
+   | TPat_Var String
+--   | TPat_Chord (b -> a) (TPat b) (TPat String) [TPat [Modifier]]
 
 instance Show a => Show (TPat a) where
   show (TPat_Atom c v) = "TPat_Atom (" ++ show c ++ ") (" ++ show v ++ ")"
@@ -99,7 +98,7 @@ instance Show a => Show (TPat a) where
   show (TPat_Repeat r v) = "TPat_Repeat (" ++ show r ++ ") (" ++ show v ++ ")"
   show (TPat_EnumFromTo a b) = "TPat_EnumFromTo (" ++ show a ++ ") (" ++ show b ++ ")"
   show (TPat_Var s) = "TPat_Var " ++ show s
-  show (TPat_Chord g iP nP msP) = "TPat_Chord (" ++ (show $ fmap g iP) ++ ") (" ++ show nP ++ ") (" ++ show msP ++ ")"
+--  show (TPat_Chord g iP nP msP) = "TPat_Chord (" ++ (show $ fmap g iP) ++ ") (" ++ show nP ++ ") (" ++ show msP ++ ")"
 
 instance Functor TPat where
   fmap f (TPat_Atom c v) = TPat_Atom c (f v)
@@ -117,7 +116,7 @@ instance Functor TPat where
   fmap f (TPat_Repeat r v) = TPat_Repeat r (fmap f v)
   fmap f (TPat_EnumFromTo a b) = TPat_EnumFromTo (fmap f a) (fmap f b)
   fmap _ (TPat_Var s) = TPat_Var s
-  fmap f (TPat_Chord g iP nP msP) = TPat_Chord (f . g) iP nP msP
+--  fmap f (TPat_Chord g iP nP msP) = TPat_Chord (f . g) iP nP msP
 
 tShowList :: (Show a) => [TPat a] -> String
 tShowList vs = "[" ++ intercalate "," (map tShow vs) ++ "]"
@@ -147,7 +146,7 @@ tShow (TPat_Seq vs) = snd $ steps_seq vs
 tShow TPat_Silence = "silence"
 tShow (TPat_EnumFromTo a b) = "unwrap $ fromTo <$> (" ++ tShow a ++ ") <*> (" ++ tShow b ++ ")"
 tShow (TPat_Var s) = "getControl " ++ s
-tShow (TPat_Chord f n name mods) = "chord (" ++ (tShow $ fmap f n) ++ ") (" ++ tShow name ++ ")" ++ tShowList mods
+--tShow (TPat_Chord f n name mods) = "chord (" ++ (tShow $ fmap f n) ++ ") (" ++ tShow name ++ ")" ++ tShowList mods
 tShow a = "can't happen? " ++ show a
 
 
@@ -173,7 +172,7 @@ toPat a = case a of
                       | otherwise = pure $ fst $ head pats
    TPat_Seq xs -> snd $ resolve_seq xs
    TPat_Var s -> getControl s
-   TPat_Chord f iP nP mP -> chordToPatSeq f (toPat iP) (toPat nP) (map toPat mP)
+--   TPat_Chord f iP nP mP -> chordToPatSeq f (toPat iP) (toPat nP) (map toPat mP)
    _ -> silence
 
 resolve_tpat :: (Enumerable a, Parseable a) => TPat a -> (Rational, Pattern a)
@@ -471,11 +470,15 @@ pVocable = wrapPos $ TPat_Atom Nothing <$> pString
 pChar :: MyParser (TPat Char)
 pChar = wrapPos $ TPat_Atom Nothing <$> pCharNum
 
+{-
 pDouble :: MyParser (TPat Double)
 pDouble = try $ do d <- pDoubleWithoutChord
                    pChord d <|> return d
                 <|> pChord (TPat_Atom Nothing 0)
                 <|> pDoubleWithoutChord
+-}
+pDouble :: MyParser (TPat Double)
+pDouble = pDoubleWithoutChord
 
 pDoubleWithoutChord :: MyParser (TPat Double)
 pDoubleWithoutChord = pPart $ wrapPos $ do s <- sign
@@ -483,10 +486,11 @@ pDoubleWithoutChord = pPart $ wrapPos $ do s <- sign
                                            return $ TPat_Atom Nothing (applySign s f)
 
 pNote :: MyParser (TPat Note)
-pNote = try $ do n <- pNoteWithoutChord
+pNote = {-try $ do n <- pNoteWithoutChord
                  pChord n <|> return n
         <|> pChord (TPat_Atom Nothing 0)
-        <|> pNoteWithoutChord
+        <|> -}
+        pNoteWithoutChord
         <|> do TPat_Atom Nothing . fromRational <$> pRatio
 
 pNoteWithoutChord :: MyParser (TPat Note)
@@ -509,11 +513,16 @@ parseIntNote = do s <- sign
                     then return $ applySign s $ round d
                     else fail "not an integer"
 
+{-
 pIntegral :: (Integral a, Parseable a, Enumerable a) => MyParser (TPat a)
 pIntegral = try $ do i <- pIntegralWithoutChord
                      pChord i <|> return i
             <|> pChord (TPat_Atom Nothing 0)
             <|> pIntegralWithoutChord
+-}
+pIntegral :: (Integral a, Parseable a, Enumerable a) => MyParser (TPat a)
+pIntegral = pIntegralWithoutChord
+
 
 pIntegralWithoutChord :: (Integral a, Parseable a, Enumerable a) => MyParser (TPat a)
 pIntegralWithoutChord = pPart $ wrapPos $ fmap (TPat_Atom Nothing) parseIntNote
@@ -694,9 +703,11 @@ parseModifiers = (many1 parseModOpen) <|> parseModDrop <|> (fmap pure parseModRa
 pModifiers :: MyParser (TPat [Modifier])
 pModifiers = wrapPos $ TPat_Atom Nothing <$> parseModifiers
 
+{-
 pChord :: (Enum a, Num a, Parseable a, Enumerable a) => TPat a -> MyParser (TPat a)
 pChord i = do
     char '\''
     n <- pPart pVocable <?> "chordname"
     ms <- option [] $ many1 $ (char '\'' >> pPart pModifiers)
     return $ TPat_Chord id i n ms
+-}
