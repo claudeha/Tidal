@@ -35,43 +35,43 @@ import Data.Fixed (mod')
 grp :: [String -> ValueMap] -> Pattern String -> ControlPattern
 grp [] _ = empty
 grp fs p = splitby <$> p
-  where splitby name = Map.unions $ map (\(v, f) -> f v) $ zip (split name) fs
+  where splitby name = VM $ Map.unions $ map (\(v, f) -> unVM $ f v) $ zip (split name) fs
         split :: String -> [String]
         split = wordsBy (==':')
 
 mF :: String -> String -> ValueMap
-mF name v = fromMaybe Map.empty $ do f <- readMaybe v
-                                     return $ Map.singleton name (VF f)
+mF name v = fromMaybe (VM Map.empty) $ do f <- readMaybe v
+                                          return $ VM (Map.singleton name (VF f))
 
 mI :: String -> String -> ValueMap
-mI name v = fromMaybe Map.empty $ do i <- readMaybe v
-                                     return $ Map.singleton name (VI i)
+mI name v = fromMaybe (VM Map.empty) $ do i <- readMaybe v
+                                          return $ VM (Map.singleton name (VI i))
 
 mS :: String -> String -> ValueMap
-mS name v = Map.singleton name (VS v)
+mS name v = VM (Map.singleton name (VS v))
 
 -- * Param makers
 
 pF :: String -> Pattern Double -> ControlPattern
-pF name = fmap (Map.singleton name . VF)
+pF name = fmap (VM . Map.singleton name . VF)
 
 pI :: String -> Pattern Int -> ControlPattern
-pI name = fmap (Map.singleton name . VI)
+pI name = fmap (VM . Map.singleton name . VI)
 
 pB :: String -> Pattern Bool -> ControlPattern
-pB name = fmap (Map.singleton name . VB)
+pB name = fmap (VM . Map.singleton name . VB)
  
 pR :: String -> Pattern Rational -> ControlPattern
-pR name = fmap (Map.singleton name . VR)
+pR name = fmap (VM . Map.singleton name . VR)
 
 pN :: String -> Pattern Note -> ControlPattern
-pN name = fmap (Map.singleton name . VN)
+pN name = fmap (VM . Map.singleton name . VN)
 
 pS :: String -> Pattern String -> ControlPattern
-pS name = fmap (Map.singleton name . VS)
+pS name = fmap (VM . Map.singleton name . VS)
 
 pX :: String -> Pattern [Word8] -> ControlPattern
-pX name = fmap (Map.singleton name . VX)
+pX name = fmap (VM . Map.singleton name . VX)
 
 pStateF ::
   String -> -- ^ A parameter, e.g. `note`; a
@@ -81,11 +81,11 @@ pStateF ::
   (Maybe Double -> Double) ->
   ControlPattern
 pStateF name sName update =
-  pure $ Map.singleton name $ VState statef
+  pure $ VM . Map.singleton name $ VState statef
   where statef :: ValueMap -> (ValueMap, Value)
-        statef sMap = (Map.insert sName v sMap, v)
+        statef sMap = ((VM . Map.insert sName v . unVM) sMap, v)
           where v = VF $ update
-                    $ Map.lookup sName sMap >>= getF
+                    $ Map.lookup sName (unVM sMap) >>= getF
 
 -- | `pStateList` is made with cyclic lists in mind,
 -- but it can even "cycle" through infinite lists.
@@ -97,14 +97,14 @@ pStateList ::
   [Value] -> -- ^ The list to cycle through.
   ControlPattern
 pStateList name sName xs =
-  pure $ Map.singleton name $ VState statef
+  pure $ VM . Map.singleton name $ VState statef
   where
     statef :: ValueMap -> (ValueMap, Value)
-    statef sMap = ( Map.insert sName
-                    (VList $ tail looped) sMap
+    statef sMap = ( VM $ Map.insert sName
+                    (VList $ tail looped) (unVM sMap)
                   , head looped)
       where xs' = fromMaybe xs
-                  $ Map.lookup sName sMap >>= getList
+                  $ Map.lookup sName (unVM sMap) >>= getList
             -- do this instead of a cycle, so it can get updated with the a list
             looped | null xs' = xs
                    | otherwise = xs'

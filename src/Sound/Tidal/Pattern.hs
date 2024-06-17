@@ -391,16 +391,16 @@ instance (RealFloat a) => RealFloat (Pattern a) where
   atan2          = liftA2 atan2
 
 instance Num ValueMap where
-  negate      = (applyFIS negate negate id <$>)
-  (+)         = Map.unionWith (fNum2 (+) (+))
-  (*)         = Map.unionWith (fNum2 (*) (*))
-  fromInteger i = Map.singleton "n" $ VI (fromInteger i)
-  signum      = (applyFIS signum signum id <$>)
-  abs         = (applyFIS abs abs id <$>)
+  negate (VM a) = VM $ (applyFIS negate negate id <$>) a
+  VM a + VM b = VM $ Map.unionWith (fNum2 (+) (+)) a b
+  VM a * VM b = VM $ Map.unionWith (fNum2 (*) (*)) a b
+  fromInteger i = VM $ Map.singleton "n" $ VI (fromInteger i)
+  signum      = VM . (applyFIS signum signum id <$>) . unVM
+  abs         = VM . (applyFIS abs abs id <$>) . unVM
 
 instance Fractional ValueMap where
-  recip        = fmap (applyFIS recip id id)
-  fromRational r = Map.singleton "speed" $ VF (fromRational r)
+  recip        = VM . fmap (applyFIS recip id id) . unVM
+  fromRational r = VM $ Map.singleton "speed" $ VF (fromRational r)
 
 class Moddable a where
   gmod :: a -> a -> a
@@ -414,7 +414,7 @@ instance Moddable Note where
 instance Moddable Int where
   gmod = mod
 instance Moddable ValueMap where
-  gmod = Map.unionWith (fNum2 mod mod')
+  gmod (VM a ) (VM b) = VM $ Map.unionWith (fNum2 mod mod') a b
 
 instance Floating ValueMap
   where pi = noOv "pi"
@@ -444,7 +444,7 @@ nothing :: Pattern a
 nothing = empty {tactus = Just 0}
 
 queryArc :: Pattern a -> Arc -> [Event a]
-queryArc p a = query p $ State a Map.empty
+queryArc p a = query p $ State a (VM Map.empty)
 
 -- | Splits queries that span cycles. For example `query p (0.5, 1.5)` would be
 -- turned into two queries, `(0.5,1)` and `(1,1.5)`, and the results
@@ -502,7 +502,7 @@ withPart :: (Arc -> Arc) -> Pattern a -> Pattern a
 withPart f = withEvent (\(Event c w p v) -> Event c w (f p) v)
 
 _extract :: (Value -> Maybe a) -> String -> ControlPattern -> Pattern a
-_extract f name pat = filterJust $ withValue (Map.lookup name >=> f) pat
+_extract f name pat = filterJust $ withValue (Map.lookup name . unVM >=> f) pat
 
 -- | Extract a pattern of integer values by from a control pattern, given the name of the control
 extractI :: String -> ControlPattern -> Pattern Int
@@ -909,12 +909,12 @@ toEvent (((ws, we), (ps, pe)), v) = Event (Context []) (Just $ Arc ws we) (Arc p
  -- Resolves higher order VState values to plain values, by passing through (and changing) state
 resolveState :: ValueMap -> [Event ValueMap] -> (ValueMap, [Event ValueMap])
 resolveState sMap [] = (sMap, [])
-resolveState sMap (e:es) = (sMap'', (e {value = v'}):es')
-  where f sm (VState v) = v sm
+resolveState sMap (e:es) = (sMap'', (e {value = VM v'}):es')
+  where f sm (VState v) = case v (VM sm) of (sm', v') -> (unVM sm', v')
         f sm v          = (sm, v)
-        (sMap', v') | eventHasOnset e = Map.mapAccum f sMap (value e)    -- pass state through VState functions
-                    | otherwise = (sMap, Map.filter notVState $ value e) -- filter out VState values without onsets
-        (sMap'', es') = resolveState sMap' es
+        (sMap', v') | eventHasOnset e = Map.mapAccum f (unVM sMap) (unVM $ value e)    -- pass state through VState functions
+                    | otherwise = (unVM sMap, Map.filter notVState $ unVM $ value e) -- filter out VState values without onsets
+        (sMap'', es') = resolveState (VM sMap') es
         notVState (VState _) = False
         notVState _          = True
 
@@ -938,7 +938,8 @@ class Valuable a where
   toValue :: a -> Value
 instance NFData Value
 
-type ValueMap = Map.Map String Value
+newtype ValueMap = VM{ unVM :: Map.Map String Value }
+  deriving (Eq, Ord)
 
 -- | Note is Double, but with a different parser
 newtype Note = Note { unNote :: Double }

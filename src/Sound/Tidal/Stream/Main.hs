@@ -2,6 +2,7 @@ module Sound.Tidal.Stream.Main where
 
 import qualified Data.Map as Map
 import qualified Sound.Tidal.Clock as Clock
+import           Sound.Tidal.Pattern (ValueMap(..))
 import           Control.Concurrent.MVar
 import           Control.Concurrent
 import           System.IO (hPutStrLn, stderr)
@@ -43,7 +44,7 @@ startTidal target config = startStream config [(target, [superdirtShape])]
 -- Spawns a thread that listens to and acts on OSC control messages
 startStream :: Config -> [(Target, [OSC])] -> IO Stream
 startStream config oscmap = do
-       sMapMV <- newMVar Map.empty
+       sMapMV <- newMVar (VM Map.empty)
        pMapMV <- newMVar Map.empty
        bussesMV <- newMVar []
        globalFMV <- newMVar id
