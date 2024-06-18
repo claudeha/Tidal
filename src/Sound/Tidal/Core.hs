@@ -146,14 +146,6 @@ instance Unionable a where
 instance {-# OVERLAPPING #-} Unionable ValueMap where
   union = Map.union
 
-instance Unionable b => Unionable (a -> b) where
-  union f g a = union (f a) (g a)
-
-instance Unionable Char
-instance Unionable Int
-instance Unionable Double
-instance Unionable [a]
-
 (|+|) :: (Applicative a, Num b) => a b -> a b -> a b
 a |+| b = (+) <$> a <*> b
 (|+ ) :: Num a => Pattern a -> Pattern a -> Pattern a
