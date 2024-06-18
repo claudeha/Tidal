@@ -1232,7 +1232,7 @@ instance (Show a) => Show (Pattern a) where
 
 showStateful :: ControlPattern -> String
 showStateful p = intercalate "\n" evStrings
-  where (_, evs) = resolveState (VM Map.empty) $ sortOn part $ queryArc (filterOnsets p) (Arc 0 1)
+  where (_, evs) = resolveState (Map.empty) $ sortOn part $ queryArc (filterOnsets p) (Arc 0 1)
         evs' = map showEvent evs
         maxPartLength :: Int
         maxPartLength = maximum $ map (length . fst) evs'
@@ -1285,11 +1285,11 @@ instance Show Value where
   show (VB b)         = show b
   show (VX xs)        = show xs
   show (VPattern pat) = "(" ++ show pat ++ ")"
-  show (VState f)     = show $ f (VM Map.empty)
+  show (VState f)     = show $ f (Map.empty)
   show (VList vs)     = show $ map show vs
 
 instance Show ValueMap where
-  show (VM m) = intercalate ", " $ map (\(name, v) -> name ++ ": " ++ show v) $ Map.toList m
+  show m = intercalate ", " $ map (\(name, v) -> name ++ ": " ++ show v) $ Map.toList m
 
 instance Show Arc where
   show (Arc s e) = prettyRat s ++ ">" ++ prettyRat e
