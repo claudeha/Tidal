@@ -308,7 +308,7 @@ updatePattern stream k t pat = t `seq` do
   pMap <- seq x $ takeMVar (sPMapMV stream)
   let playState = updatePS $ Map.lookup (fromID k) pMap
   putMVar (sPMapMV stream) $ Map.insert (fromID k) playState pMap
-  where updatePS (Just playState) = do playState {psPattern = pat', psHistory = pat:(psHistory playState)}
+  where updatePS (Just playState) = playState {psPattern = pat', psHistory = pat:(psHistory playState)}
         updatePS Nothing = PlayState pat' False False [pat']
         patControls = Map.singleton patternTimeID (VR t)
         pat' = withQueryControls (Map.union patControls)
