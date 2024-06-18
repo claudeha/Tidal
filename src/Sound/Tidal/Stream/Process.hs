@@ -98,7 +98,7 @@ doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
         patstack = sGlobalF $ playStack pMap
         cps = ((Clock.beatToCycles ops) bpm) / 60
         coerce = realToFrac
-        sMap' = VM $ Map.insert "_cps" (VF $ coerce cps) (unVM sMap)
+        sMap' = Map.insert "_cps" (VF $ coerce cps) sMap
         extraLatency = nudge
         -- First the state is used to query the pattern
         es = sortOn (start . part) $ query patstack (State {arc = Arc st end,
@@ -134,7 +134,7 @@ processCps ops = mapM processEvent
       on <- (Clock.timeAtBeat ops) onBeat
       onPart <- (Clock.timeAtBeat ops) partStartBeat
       when (eventHasOnset e) (do
-        let cps' = Map.lookup "cps" (unVM $ value e) >>= getF
+        let cps' = Map.lookup "cps" (value e) >>= getF
             coerce = fmap realToFrac
         maybe (return ()) (\newCps -> (Clock.setTempo ops) ((Clock.cyclesToBeat ops) (newCps * 60)) on) $ coerce cps'
         )
@@ -174,7 +174,7 @@ toOSC busses pe osc@(OSC _ _)
         -- Map.mapKeys tail is used to remove ^ from the keys.
         -- In case (value e) has the key "", we will get a crash here.
         playmap' = Map.union (Map.mapKeys tail $ Map.map (\v -> VS ('c':(show $ toBus $ fromMaybe 0 $ getI v))) busmap) playmap
-        val = unVM . value . peEvent
+        val = value . peEvent
         -- Only events that start within the current nowArc are included
         playmsg | peHasOnset pe = do
                   -- If there is already cps in the event, the union will preserve that.
@@ -185,8 +185,8 @@ toOSC busses pe osc@(OSC _ _)
                                         ]
                       addExtra = Map.union playmap' extra
                       ts = (peOnWholeOrPartOsc pe) + nudge -- + latency
-                  vs <- toData osc ((peEvent pe) {value = VM addExtra})
-                  mungedPath <- substitutePath (path osc) (VM playmap')
+                  vs <- toData osc ((peEvent pe) {value = addExtra})
+                  mungedPath <- substitutePath (path osc) playmap'
                   return (ts,
                           False, -- bus message ?
                           O.Message mungedPath vs
@@ -216,18 +216,18 @@ toOSC _ pe (OSCContext oscpath)
                                  )
         cyc :: Double
         cyc = fromRational $ peCycle pe
-        nudge = fromMaybe 0 $ Map.lookup "nudge" (unVM $ value $ peEvent pe) >>= getF
-        ident = fromMaybe "unknown" $ Map.lookup "_id_" (unVM $ value $ peEvent pe) >>= getS
+        nudge = fromMaybe 0 $ Map.lookup "nudge" (value $ peEvent pe) >>= getF
+        ident = fromMaybe "unknown" $ Map.lookup "_id_" (value $ peEvent pe) >>= getS
         ts = (peOnWholeOrPartOsc pe) + nudge -- + latency
 
 toData :: OSC -> Event ValueMap -> Maybe [O.Datum]
-toData (OSC {args = ArgList as}) e = fmap (fmap (toDatum)) $ sequence $ map (\(n,v) -> Map.lookup n (unVM $ value e) <|> v) as
+toData (OSC {args = ArgList as}) e = fmap (fmap (toDatum)) $ sequence $ map (\(n,v) -> Map.lookup n (value e) <|> v) as
 toData (OSC {args = Named rqrd}) e
-  | hasRequired rqrd = Just $ concatMap (\(n,v) -> [O.string n, toDatum v]) $ Map.toList $ unVM $ value e
+  | hasRequired rqrd = Just $ concatMap (\(n,v) -> [O.string n, toDatum v]) $ Map.toList $ value e
   | otherwise = Nothing
   where hasRequired [] = True
         hasRequired xs = null $ filter (not . (`elem` ks)) xs
-        ks = Map.keys (unVM $ value e)
+        ks = Map.keys (value e)
 toData _ _ = Nothing
 
 toDatum :: Value -> O.Datum
@@ -254,7 +254,7 @@ substitutePath str cm = parse str
           where (a,b) = break (== '}') xs
 
 getString :: ValueMap -> String -> Maybe String
-getString cm s = (simpleShow <$> Map.lookup param (unVM cm)) <|> defaultValue dflt
+getString cm s = (simpleShow <$> Map.lookup param cm) <|> defaultValue dflt
                       where (param, dflt) = break (== '=') s
                             simpleShow :: Value -> String
                             simpleShow (VS str)     = str
@@ -308,10 +308,10 @@ updatePattern stream k t pat = t `seq` do
   pMap <- seq x $ takeMVar (sPMapMV stream)
   let playState = updatePS $ Map.lookup (fromID k) pMap
   putMVar (sPMapMV stream) $ Map.insert (fromID k) playState pMap
-  where updatePS (Just playState) = playState {psPattern = pat', psHistory = pat:(psHistory playState)}
+  where updatePS (Just playState) = do playState {psPattern = pat', psHistory = pat:(psHistory playState)}
         updatePS Nothing = PlayState pat' False False [pat']
         patControls = Map.singleton patternTimeID (VR t)
-        pat' = withQueryControls (VM . Map.union patControls . unVM)
+        pat' = withQueryControls (Map.union patControls)
                  $ pat # pS "_id_" (pure $ fromID k)
 
 setPreviousPatternOrSilence :: MVar PlayMap -> IO ()

@@ -138,11 +138,13 @@ envEqR = sig $ \t -> sqrt (cos (pi/2 * max 0 (min (fromRational (1-t)) 1)))
 -- class for types that support a left-biased union
 class Unionable a where
   union :: a -> a -> a
-  -- default union is just to take the left hand side..
+
+-- default union is just to take the left hand side..
+instance Unionable a where
   union = const
 
-instance Unionable ValueMap where
-  union (VM a) (VM b) = VM (Map.union a b)
+instance {-# OVERLAPPING #-} Unionable ValueMap where
+  union = Map.union
 
 instance Unionable b => Unionable (a -> b) where
   union f g a = union (f a) (g a)
@@ -647,10 +649,10 @@ _getP :: a -> (Value -> Maybe a) -> Pattern Value -> Pattern a
 _getP d f pat = fromMaybe d . f <$> pat
 
 _cX :: a -> (Value -> Maybe a) -> String -> Pattern a
-_cX d f s = pattern $ \(State a m) -> queryArc (maybe (pure d) (_getP d f . valueToPattern) $ Map.lookup s (unVM m)) a
+_cX d f s = pattern $ \(State a m) -> queryArc (maybe (pure d) (_getP d f . valueToPattern) $ Map.lookup s m) a
 
 _cX_ :: (Value -> Maybe a) -> String -> Pattern a
-_cX_ f s = pattern $ \(State a m) -> queryArc (maybe silence (_getP_ f . valueToPattern) $ Map.lookup s (unVM m)) a
+_cX_ f s = pattern $ \(State a m) -> queryArc (maybe silence (_getP_ f . valueToPattern) $ Map.lookup s m) a
 
 cF :: Double -> String -> Pattern Double
 cF d = _cX d getF

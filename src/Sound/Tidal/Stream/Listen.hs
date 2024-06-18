@@ -103,7 +103,7 @@ ctrlResponder waits c (stream@(Stream {sListen = Just sock}))
         act m = hPutStrLn stderr $ "Unhandled OSC: " ++ show m
         add :: String -> Value -> IO ()
         add k v = do sMap <- takeMVar (sStateMV stream)
-                     putMVar (sStateMV stream) $ VM $ Map.insert k v $ unVM sMap
+                     putMVar (sStateMV stream) $ Map.insert k v sMap
                      return ()
         withID :: O.Datum -> (ID -> IO ()) -> IO ()
         withID (O.AsciiString k) func = func $ (ID . O.ascii_to_string) k

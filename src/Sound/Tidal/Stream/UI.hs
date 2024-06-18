@@ -120,12 +120,12 @@ streamAll s f = do _ <- swapMVar (sGlobalFMV s) f
                    return ()
 
 streamGet :: Stream -> String -> IO (Maybe Value)
-streamGet s k = (Map.lookup k . unVM) <$> readMVar (sStateMV s)
+streamGet s k = Map.lookup k <$> readMVar (sStateMV s)
 
 streamSet :: Valuable a => Stream -> String -> Pattern a -> IO ()
 streamSet s k pat = do sMap <- takeMVar $ sStateMV s
                        let pat' = toValue <$> pat
-                           sMap' = VM . Map.insert k (VPattern pat') . unVM $ sMap
+                           sMap' = Map.insert k (VPattern pat') sMap
                        putMVar (sStateMV s) $ sMap'
 
 streamSetI :: Stream -> String -> Pattern Int -> IO ()

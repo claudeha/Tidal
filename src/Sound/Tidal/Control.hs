@@ -95,13 +95,13 @@ chopArc (Arc s e) n = map (\i -> Arc (s + (e-s)*(fromIntegral i/fromIntegral n))
 _chop :: Int -> ControlPattern -> ControlPattern
 _chop n pat = squeezeJoin $ f <$> pat
   where f v = fastcat $ map (pure . rangemap v) slices
-        rangemap v (b, e) = VM $ Map.union (unVM (fromMaybe (makeMap (b,e)) $ merge v (b,e))) (unVM v)
+        rangemap v (b, e) = Map.union (fromMaybe (makeMap (b,e)) $ merge v (b,e)) v
         merge :: ValueMap -> (Double, Double) -> Maybe ValueMap
-        merge v (b, e) = do b' <- Map.lookup "begin" (unVM v) >>= getF
-                            e' <- Map.lookup "end" (unVM v) >>= getF
+        merge v (b, e) = do b' <- Map.lookup "begin" v >>= getF
+                            e' <- Map.lookup "end" v >>= getF
                             let d = e' - b'
                             return $ makeMap (b' + b*d, b' + e*d)
-        makeMap (b,e) = VM $ Map.fromList [("begin", VF b), ("end", VF $ e)]
+        makeMap (b,e) = Map.fromList [("begin", VF b), ("end", VF $ e)]
         slices = map (\i -> (frac i, frac $ i + 1)) [0 .. n-1]
         frac i = fromIntegral i / fromIntegral n
 
@@ -134,9 +134,9 @@ _striate n p = keepTactus (withTactus (* toRational n) p) $ fastcat $ map offset
   where offset i = mergePlayRange (fromIntegral i / fromIntegral n, fromIntegral (i+1) / fromIntegral n) <$> p
 
 mergePlayRange :: (Double, Double) -> ValueMap -> ValueMap
-mergePlayRange (b,e) cm = VM $ Map.insert "begin" (VF ((b*d')+b')) $ Map.insert "end" (VF ((e*d')+b')) $ unVM cm
-  where b' = fromMaybe 0 $ Map.lookup "begin" (unVM cm) >>= getF
-        e' = fromMaybe 1 $ Map.lookup "end" (unVM cm) >>= getF
+mergePlayRange (b,e) cm = Map.insert "begin" (VF ((b*d')+b')) $ Map.insert "end" (VF ((e*d')+b')) cm
+  where b' = fromMaybe 0 $ Map.lookup "begin" cm >>= getF
+        e' = fromMaybe 1 $ Map.lookup "end" cm >>= getF
         d' = e' - b'
 
 
@@ -317,11 +317,11 @@ _slice n i p =
 randslice :: Pattern Int -> ControlPattern -> ControlPattern
 randslice = patternify $ \n p -> keepTactus (withTactus (* (toRational n)) $ p) $ innerJoin $ (\i -> _slice n i p) <$> _irand n
 
-_splice :: Int -> Pattern Int -> ControlPattern -> ControlPattern
+_splice :: Int -> Pattern Int -> ControlPattern -> Pattern (Map.Map String Value)
 _splice bits ipat pat = withEvent f (slice (pure bits) ipat pat) # P.unit (pure "c")
-  where f ev = case Map.lookup "speed" (unVM $ value ev) of
-                        (Just (VF s)) -> ev {value = VM $ Map.insert "speed" (VF $ d*s) $ unVM (value ev)}  -- if there is a speed parameter already present
-                        _ -> ev {value = VM $ Map.insert "speed" (VF d) $ unVM (value ev)}
+  where f ev = case Map.lookup "speed" (value ev) of
+                        (Just (VF s)) -> ev {value = Map.insert "speed" (VF $ d*s) (value ev)}  -- if there is a speed parameter already present
+                        _ -> ev {value = Map.insert "speed" (VF d) (value ev)}
           where d = sz / fromRational (wholeStop ev - wholeStart ev)
                 sz = 1/fromIntegral bits
 
@@ -331,7 +331,7 @@ _splice bits ipat pat = withEvent f (slice (pure bits) ipat pat) # P.unit (pure 
 
   > d1 $ splice 8 "[<0*8 0*2> 3*4 2 4] [4 .. 7]" $ sound "breaks165"
 -}
-splice :: Pattern Int -> Pattern Int -> ControlPattern -> ControlPattern
+splice :: Pattern Int -> Pattern Int -> ControlPattern -> Pattern (Map.Map String Value)
 splice bitpat ipat pat = setTactusFrom bitpat $ innerJoin $ (\bits -> _splice bits ipat pat) <$> bitpat
 
 {-|
@@ -568,7 +568,7 @@ triggerWith :: (Time -> Time) -> Pattern a -> Pattern a
 triggerWith f pat = pat {query = q}
   where q st = query (rotR (offset st) pat) st
         offset st = fromMaybe 0 $ f
-                      <$> (Map.lookup patternTimeID (unVM $ controls st) >>= getR)
+                      <$> (Map.lookup patternTimeID (controls st) >>= getR)
 
 splat :: Pattern Int -> ControlPattern -> ControlPattern -> ControlPattern
 splat slices epat pat = chop slices pat # bite 1 (const 0 <$> pat) epat

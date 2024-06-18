@@ -2583,7 +2583,7 @@ _pickF i fs p =  (fs !!! i) p
 -}
 contrast :: (ControlPattern -> ControlPattern) -> (ControlPattern -> ControlPattern)
             -> ControlPattern -> ControlPattern -> ControlPattern
-contrast f g p q = contrastBy (==) f g (fmap unVM p) (fmap unVM q)
+contrast = contrastBy (==)
 
 {-|
   @contrastBy@ is contrastBy is the general version of 'contrast', in which you can specify an abritrary boolean function that will be used to compare the control patterns.
@@ -2599,9 +2599,9 @@ contrastBy :: (a -> Value -> Bool)
 contrastBy comp f f' p p' = overlay (f matched) (f' unmatched)
   where matches = matchManyToOne (flip $ Map.isSubmapOfBy comp) p p'
         matched :: ControlPattern
-        matched = fmap VM $ filterJust $ (\(t, a) -> if t then Just a else Nothing) <$> matches
+        matched = filterJust $ (\(t, a) -> if t then Just a else Nothing) <$> matches
         unmatched :: ControlPattern
-        unmatched = fmap VM $ filterJust $ (\(t, a) -> if not t then Just a else Nothing) <$> matches
+        unmatched = filterJust $ (\(t, a) -> if not t then Just a else Nothing) <$> matches
 
 contrastRange
   :: (ControlPattern -> Pattern a)
@@ -2609,7 +2609,7 @@ contrastRange
      -> Pattern (Map.Map String (Value, Value))
      -> ControlPattern
      -> Pattern a
-contrastRange g h p q = contrastBy f g h p (fmap unVM q)
+contrastRange = contrastBy f
       where f (VI s, VI e) (VI v) = v >= s && v <= e
             f (VF s, VF e) (VF v) = v >= s && v <= e
             f (VN s, VN e) (VN v) = v >= s && v <= e
