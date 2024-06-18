@@ -144,6 +144,14 @@ class Unionable a where
 instance Unionable ValueMap where
   union (VM a) (VM b) = VM (Map.union a b)
 
+instance Unionable b => Unionable (a -> b) where
+  union f g a = union (f a) (g a)
+
+instance Unionable Char
+instance Unionable Int
+instance Unionable Double
+instance Unionable [a]
+
 (|+|) :: (Applicative a, Num b) => a b -> a b -> a b
 a |+| b = (+) <$> a <*> b
 (|+ ) :: Num a => Pattern a -> Pattern a -> Pattern a
