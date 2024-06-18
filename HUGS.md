@@ -3,7 +3,7 @@
 test with:
 
 ```
-hugs -98 -E"nano +%d %s" -P:hugs:src:tidal-link/src/hs Sound.Tidal.Context
+hugs -98 +o -E"nano +%d %s" -P:hugs:src:tidal-link/src/hs Sound.Tidal.Context
 ```
 
 (after building/patching `Link.so` as below)
@@ -21,8 +21,9 @@ but you can print patterns in the REPL:
 there are some patches in `tidal-link/src/hs/Sound/Tidal`
 for compiling `tidal-link` with `ffihugs`
 
-`hsc2hs-hugs` is broken on Debian (missing alignment function,
-hardcoded path that doesn't exist).  hack to fix it:
+`hsc2hs-hugs` is broken on Debian (missing alignment function):
+there is also a hardcoded default path that doesn't exist.
+hack to fix it:
 
 ```
 apt source hugs98
@@ -30,6 +31,8 @@ patch -p1 < tidal-link/src/hs/Sound/Tidal/hsc2hs-alignment-fixes-for-hugs.patch
 sudo mkdir /usr/share/hsc2hs-0.67
 sudo cp hugs98-98.200609.21/hsc2hs/template-hsc.h /usr/share/hsc2hs-0.67
 ```
+
+alternatively to sudo: use the `-t` argument for `hsc2hs-hugs`
 
 then build the ffi module for hugs
 
@@ -52,8 +55,6 @@ Control.Applicative imported more places
 import Prelude hiding not needed
 
 Data.Monoid imported where necessary
-
-ValueMap is a newtype instead of a type to avoid overlapping instances
 
 LambdaCase : replaced by use of lambda and case of
 
