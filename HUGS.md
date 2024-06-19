@@ -56,10 +56,9 @@ then build the ffi module for hugs
 
 ```
 hsc2hs-hugs -o tidal-link/src/hs/Sound/Tidal/Link.hs -I tidal-link/link/extensions/abl_link/include/ tidal-link/src/hs/Sound/Tidal/Link.hsc
-patch -p1 < tidal-link/src/hs/Sound/Tidal/hsc2hs-ableton-link-fixes-for-hugs.patch
-ffihugs tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
+ffihugs -P:hugs tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
 # the previous command fails and prints a build command, but continue:
-patch -p1 < tidal-link/src/hs/Sound/Tidal/ffihugs-ableton-link-fixes.patch
+patch -p1 -F3 < tidal-link/src/hs/Sound/Tidal/ffihugs-ableton-link-fixes.patch
 # rerun the failed build command, in my case it was:
 gcc -Wall -fPIC -std=gnu89   -shared -fPIC -D__HUGS__ "-I/usr/lib/hugs/include" -o "tidal-link/src/hs/Sound/Tidal/Link.so" "tidal-link/src/hs/Sound/Tidal/Link.c" -Itidal-link/link/extensions/abl_link/include
 ```
