@@ -1,9 +1,16 @@
 # Hugs98 TidalCycles
 
-test with:
+test with hugs98 as found in Debian:
 
 ```
-hugs -98 +o -E"nano +%d %s" -P:hugs:src:tidal-link/src/hs Sound.Tidal.Context
+hugs -98 +o -E"nano +%d %s" -P:hugs98:src:tidal-link/src/hs Sound.Tidal.Context
+```
+
+or for the hugs2019 updated repository
+<https://github.com/cjacker/Hugs>:
+
+```
+hugs -98 +o -E"nano +%d %s" -P:hugs2019:hugs98:src:tidal-link/src/hs Sound.Tidal.Context
 ```
 
 (after building/patching `Link.so` as below)
