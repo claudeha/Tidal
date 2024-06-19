@@ -20,6 +20,8 @@
 
 module Sound.Tidal.Core where
 
+import           Prelude             ()
+import           MyPrelude
 import           Control.Applicative (Applicative, pure, (<$>), (<*>))
 import           Data.Fixed          (mod')
 import qualified Data.Map.Strict     as Map

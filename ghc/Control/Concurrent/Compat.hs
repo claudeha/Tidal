@@ -2,11 +2,11 @@ module Control.Concurrent.Compat
   ( module Control.Concurrent.Compat
   , module Control.Concurrent.STM
   , module Control.Concurrent
-  )
+  ) where
 import Control.Concurrent.STM
 import Control.Concurrent
 
-noRetry :: IO ()
+noRetry :: Monad m => m ()
 noRetry = return ()
 
 retrying :: IO a -> IO a

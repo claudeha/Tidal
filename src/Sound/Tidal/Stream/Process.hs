@@ -25,7 +25,7 @@ module Sound.Tidal.Stream.Process where
 
 import           Control.Applicative       (pure, (<$>), (<|>))
 import           Control.Concurrent.MVar
-import qualified Control.Exception         as E
+import qualified Control.Exception.Compat  as E
 import           Control.Monad             (forM_, when)
 import qualified Data.Map.Strict           as Map
 import           Data.Maybe                (catMaybes, fromJust, fromMaybe)
@@ -85,7 +85,7 @@ doTick :: MVar ValueMap                           -- pattern state
        -> Clock.LinkOperations                    -- ableton link operations
        -> IO ()
 doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
-  E.handle (\e -> do
+  E.handle (\(e :: E.SomeException) -> do
     hPutStrLn stderr $ "Failed to Stream.doTick: " ++ show e
     hPutStrLn stderr $ "Return to previous pattern."
     setPreviousPatternOrSilence playMV) (do
@@ -115,7 +115,7 @@ doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
               let latency = oLatency target
                   ms = concatMap (\e ->  concatMap (toOSC busses e) oscs) tes
               -- send the events to the OSC target
-              forM_ ms $ \m -> (send listen cx latency extraLatency m) `E.catch` \e ->
+              forM_ ms $ \m -> (send listen cx latency extraLatency m) `E.catch` \(e :: E.SomeException) ->
                 hPutStrLn stderr $ "Failed to send. Is the '" ++ oName target ++ "' target running? " ++ show e
       putMVar stateMV sMap'')
 

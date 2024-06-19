@@ -37,11 +37,10 @@ import           Sound.Tidal.Core
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.UI
 import           Sound.Tidal.Utils                      (fromRight, intercalate, mapFst)
+import           Parsec.Compat
 import           Text.ParserCombinators.Parsec
 import           Text.ParserCombinators.Parsec.Language (haskellDef)
 import qualified Text.ParserCombinators.Parsec.Token    as P
-
-instance Eq ParseError
 
 data TidalParseError = TidalParseError {parsecError :: ParseError,
                                         code        :: String

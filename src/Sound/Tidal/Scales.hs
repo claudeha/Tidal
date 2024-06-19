@@ -18,6 +18,8 @@ module Sound.Tidal.Scales (scale, scaleList, scaleTable, getScale) where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
+import Prelude             ()
+import MyPrelude
 import Control.Applicative ((<$>))
 import Data.Maybe
 import Sound.Tidal.Pattern

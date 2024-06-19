@@ -3,7 +3,7 @@ module Sound.Tidal.Stream.UI where
 
 import           Control.Applicative        ((<$>))
 import           Control.Concurrent.MVar
-import qualified Control.Exception          as E
+import qualified Control.Exception.Compat   as E
 import qualified Data.Map                   as Map
 import           Data.Maybe                 (isJust)
 import qualified Sound.Osc.Fd               as O
@@ -62,7 +62,7 @@ streamList s = do pMap <- readMVar (sPMapMV s)
 streamReplace :: Stream -> ID -> ControlPattern -> IO ()
 streamReplace stream k pat = pat `seq` do
                   t <- Clock.getCycleTime (cClockConfig $ sConfig stream) (sClockRef stream)
-                  E.handle (\e -> do
+                  E.handle (\(e :: E.SomeException) -> do
                     hPutStrLn stderr $ "Failed to Stream.streamReplace: " ++ show e
                     hPutStrLn stderr $ "Return to previous pattern."
                     setPreviousPatternOrSilence (sPMapMV stream)) (updatePattern stream k t pat)

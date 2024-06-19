@@ -30,6 +30,7 @@ import           Data.List           (delete, findIndex, intersperse, sortBy, (\
 import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 import           Data.Monoid
+import           Data.Semigroup
 import           Data.Ord            (comparing)
 import           Data.Ratio          (denominator, numerator)
 import           Data.Word           (Word8)
@@ -325,6 +326,9 @@ instance Enum a => Enum (Pattern a) where
 instance Monoid (Pattern a) where
   mempty = empty
   mappend p p' = p `seq` p' `seq` (pattern $ \st -> query p st ++ query p' st)
+
+instance Semigroup (Pattern a) where
+  (<>) = mappend
 
 instance (Num a, Ord a) => Real (Pattern a) where
   toRational = noOv "toRational"

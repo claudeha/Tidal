@@ -16,6 +16,24 @@ but you can print patterns in the REPL:
 > s (fromString "[bd sn, hh*4]")
 ```
 
+check it still works with ghc:
+
+```
+ghci \
+  -package containers \
+  -package hosc \
+  -package mtl \
+  -package network \
+  -package parsec \
+  -package random \
+  -package stm \
+  -XOverlappingInstances \
+  -XUndecidableInstances \
+  -O2 \
+  -ighc:src:tidal-link/src/hs \
+  Sound.Tidal.Context
+```
+
 ## tidal-link FFI
 
 there are some patches in `tidal-link/src/hs/Sound/Tidal`

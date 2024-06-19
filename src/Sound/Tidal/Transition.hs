@@ -1,5 +1,7 @@
 module Sound.Tidal.Transition where
 
+import           Prelude                   ()
+import           MyPrelude
 import           Control.Applicative       (pure, (<$>))
 import           Control.Concurrent.MVar   (readMVar, swapMVar)
 

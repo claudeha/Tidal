@@ -106,7 +106,8 @@ where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Prelude             hiding (all, (*>), (<*))
+import           Prelude             ()
+import           MyPrelude           hiding (all)
 import           Sound.Tidal.Context
 import           Sound.Tidal.ID      (ID)
 import           System.IO           (hSetEncoding, stdout, utf8)

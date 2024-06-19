@@ -8,7 +8,7 @@ import qualified Data.Map as Map
 import qualified Sound.Osc.Fd as O
 import qualified Sound.Osc.Time.Timeout as O
 import qualified Network.Socket         as N
-import qualified Control.Exception as E
+import qualified Control.Exception.Compat as E
 
 import           Sound.Tidal.ID
 import           Sound.Tidal.Pattern
@@ -46,7 +46,7 @@ openListener c
         run = do sock <- O.udpServer (cCtrlAddr c) (cCtrlPort c)
                  when (cCtrlBroadcast c) $ N.setSocketOption (O.udpSocket sock) N.Broadcast 1
                  return $ Just sock
-        catchAny :: IO a -> (E.Exception -> IO a) -> IO a
+        catchAny :: IO a -> (E.SomeException -> IO a) -> IO a
         catchAny = E.catch
 
 -- Listen to and act on OSC control messages
