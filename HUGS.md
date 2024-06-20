@@ -29,6 +29,7 @@ check it still works with ghc:
 ```
 ghci \
   -package containers \
+  -package deepseq \
   -package hosc \
   -package mtl \
   -package network \
@@ -40,6 +41,19 @@ ghci \
   -ighc:src:tidal-link/src/hs \
   tidal-link/link/build/libabl_link.so \
   Sound.Tidal.Context
+```
+
+## deepseq
+
+use correct `--prefix` for your Hugs installation:
+
+```
+wget https://hackage.haskell.org/package/deepseq-1.1.0.2/deepseq-1.1.0.2.tar.gz
+tar xaf deepseq-1.1.0.2.tar.gz
+cd deepseq-1.1.0.2
+runhugs Setup.hs configure --prefix=${HOME}/Hugs
+runhugs Setup.hs build
+runhugs Setup.hs install
 ```
 
 ## tidal-link FFI
