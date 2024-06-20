@@ -51,7 +51,7 @@ data TidalParseError = TidalParseError {parsecError :: ParseError,
 instance Show TidalParseError where
   show err = "Syntax error in sequence:\n  \"" ++ code err ++ "\"\n  " ++ pointer ++ "  " ++ message
     where pointer = replicate (sourceColumn $ errorPos perr) ' ' ++ "^"
-          message = ""
+          message = show perr
           perr = parsecError err
 
 type MyParser = GenParser Char Int
@@ -217,7 +217,7 @@ parseBP_E s = toE parsed
 
 parseTPat :: Parseable a => String -> Either ParseError (TPat a)
 parseTPat = runParser (pSequence f' Control.Applicative.<* eof) (0 :: Int) ""
-  where f' = do tPatParser
+  where f' = do try tPatParser
              <|> do oneOf "~-" <?> "rest"
                     return TPat_Silence
 
