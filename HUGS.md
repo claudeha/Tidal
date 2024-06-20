@@ -80,7 +80,7 @@ then build the ffi module for hugs
 
 ```
 hsc2hs-hugs -o tidal-link/src/hs/Sound/Tidal/Link.hs -I tidal-link/link/extensions/abl_link/include/ tidal-link/src/hs/Sound/Tidal/Link.hsc
-ffihugs -P:hugs tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
+ffihugs -P:hugs98 tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
 # the previous command fails and prints a build command, but continue:
 patch -p1 -F3 < tidal-link/src/hs/Sound/Tidal/ffihugs-ableton-link-fixes.patch
 # rerun the failed build command, in my case it was:
@@ -96,7 +96,7 @@ you need a shared `abl_link` library for `ghci`:
 ```
 mkdir tidal-link/link/build
 cd tidal-link/link/build
-cmake -DCMAKE_CXX_FLAGS=-fPIC -DLINK_TESTS=OFF ..
+cmake -DCMAKE_CXX_FLAGS=-fPIC -DLINK_BUILD_TESTS=OFF ..
 make
 g++ -shared -Wl,--whole-archive libabl_link.a -Wl,--no-whole-archive -o libabl_link.so
 ```
