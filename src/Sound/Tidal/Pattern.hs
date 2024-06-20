@@ -25,6 +25,7 @@ module Sound.Tidal.Pattern (module Sound.Tidal.Pattern,
 where
 
 import           Control.Applicative (Applicative, liftA2, pure, (<$>), (<*>))
+import           Control.DeepSeq
 import           Data.Fixed          (mod')
 import           Data.List           (delete, findIndex, intersperse, sortBy, (\\))
 import qualified Data.Map.Strict     as Map
@@ -48,6 +49,9 @@ data State = State {arc      :: Arc,
 
 -- | A datatype representing events taking place over time
 data Pattern a = Pattern {query :: State -> [Event a], tactus :: Maybe Rational, pureValue :: Maybe a}
+
+instance NFData a => NFData (Pattern a) where
+  rnf (Pattern q t v) = q `seq` rnf t `seq` rnf v
 
 instance Functor Pattern where
   fmap f (Pattern q t v) = Pattern (fmap (fmap f) . q) t (fmap f v)
@@ -819,6 +823,9 @@ instance Stringy String where
 data Context = Context {contextPosition :: [((Int, Int), (Int, Int))]}
   deriving (Eq, Ord)
 
+instance NFData Context where
+   rnf (Context p) = rnf p
+
 -- | An event is a value that's active during a timespan. If a whole
 -- is present, the part should be equal to or fit inside it.
 data EventF a b = Event
@@ -830,6 +837,9 @@ data EventF a b = Event
 
 instance Functor (EventF a) where
   fmap f (Event c w p v) = Event c w p (f v)
+
+instance (NFData a, NFData b) => NFData (EventF a b) where
+  rnf (Event c w p v) = rnf c `seq` rnf w `seq` rnf p `seq` rnf v
 
 type Event a = EventF (ArcF Time) a
 
@@ -929,6 +939,18 @@ data Value = VS { svalue :: String   }
            | VList {lvalue :: [Value]}
            | VState {statevalue :: ValueMap -> (ValueMap, Value)}
 
+instance NFData Value where
+  rnf (VS v) = rnf v
+  rnf (VF v) = rnf v
+  rnf (VN v) = rnf v
+  rnf (VR v) = rnf v
+  rnf (VI v) = rnf v
+  rnf (VB v) = rnf v
+  rnf (VX v) = rnf v
+  rnf (VPattern v) = rnf v
+  rnf (VList v) = rnf v
+  rnf (VState v) = v `seq` ()
+
 class Valuable a where
   toValue :: a -> Value
 
@@ -937,6 +959,9 @@ type ValueMap = Map.Map String Value
 -- | Note is Double, but with a different parser
 newtype Note = Note { unNote :: Double }
   deriving (Eq, Ord)
+
+instance NFData Note where
+  rnf (Note n) = rnf n
 
 instance Enum Note where
   succ = Note . succ . unNote

@@ -1,6 +1,7 @@
 module Sound.Tidal.Time where
 
 import           Control.Applicative
+import           Control.DeepSeq
 import           Data.Ratio
 
 -- | Time is rational
@@ -14,6 +15,9 @@ data ArcF a = Arc
 
 instance Functor ArcF where
   fmap f (Arc a b) = Arc (f a) (f b)
+
+instance NFData a => NFData (ArcF a) where
+  rnf (Arc s e) = rnf s `seq` rnf e
 
 type Arc = ArcF Time
 
