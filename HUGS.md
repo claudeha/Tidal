@@ -1,27 +1,21 @@
 # Hugs98 TidalCycles
 
-test with hugs98 as found in Debian:
+you need Hugs2019 plus experimental OverloadedStrings from:
+<https://github.com/claudeha/Hugs/tree/OverloadedStrings>
+(which was forked from <https://github.com/cjacker/Hugs>):
 
 ```
-hugs -98 +o -E"nano +%d %s" -P:hugs98:src:tidal-link/src/hs Sound.Tidal.Context
-```
-
-or for the hugs2019 updated repository
-<https://github.com/cjacker/Hugs>:
-
-```
-hugs -98 +o -E"nano +%d %s" -P:hugs2019:hugs98:src:tidal-link/src/hs Sound.Tidal.Context
+hugs -98 +o -E"nano +%d %s" -P:hugs:src:tidal-link/src/hs Sound.Tidal.Context
 ```
 
 (after building/patching `Link.so` as below)
 
 OSC output is broken for now,
-and there are no OverloadedStrings
 but you can print and draw patterns in the REPL:
 
 ```
-> s (fromString "[bd sn, hh*4]")
-> drawLine (fromString "x ~ o ~")
+> s "[bd sn, hh*4]"
+> drawLine "x ~ o ~"
 ```
 
 check it still works with ghc:
@@ -36,6 +30,7 @@ ghci \
   -package parsec \
   -package random \
   -package stm \
+  -XOverloadedStrings \
   -XOverlappingInstances \
   -XUndecidableInstances \
   -ighc:src:tidal-link/src/hs \
@@ -51,9 +46,9 @@ use correct `--prefix` for your Hugs installation:
 wget https://hackage.haskell.org/package/deepseq-1.1.0.2/deepseq-1.1.0.2.tar.gz
 tar xaf deepseq-1.1.0.2.tar.gz
 cd deepseq-1.1.0.2
-runhugs Setup.hs configure --prefix=${HOME}/Hugs
-runhugs Setup.hs build
-runhugs Setup.hs install
+runhugs -98 Setup.hs configure --prefix=${HOME}/Hugs
+runhugs -98 Setup.hs build
+runhugs -98 Setup.hs install
 ```
 
 ## tidal-link FFI
@@ -61,26 +56,11 @@ runhugs Setup.hs install
 ### for hugs
 
 there are some patches in `tidal-link/src/hs/Sound/Tidal`
-for compiling `tidal-link` with `ffihugs`
-
-`hsc2hs-hugs` is broken on Debian (missing alignment function):
-there is also a hardcoded default path that doesn't exist.
-hack to fix it:
-
-```
-apt source hugs98
-patch -p1 < tidal-link/src/hs/Sound/Tidal/hsc2hs-alignment-fixes-for-hugs.patch
-sudo mkdir /usr/share/hsc2hs-0.67
-sudo cp hugs98-98.200609.21/hsc2hs/template-hsc.h /usr/share/hsc2hs-0.67
-```
-
-alternatively to sudo: use the `-t` argument for `hsc2hs-hugs`
-
-then build the ffi module for hugs
+for compiling `tidal-link` with `ffihugs`:
 
 ```
 hsc2hs-hugs -o tidal-link/src/hs/Sound/Tidal/Link.hs -I tidal-link/link/extensions/abl_link/include/ tidal-link/src/hs/Sound/Tidal/Link.hsc
-ffihugs -P:hugs98 tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
+ffihugs -98 -P:hugs tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
 # the previous command fails and prints a build command, but continue:
 patch -p1 -F3 < tidal-link/src/hs/Sound/Tidal/ffihugs-ableton-link-fixes.patch
 # rerun the failed build command, in my case it was:
@@ -165,17 +145,13 @@ LambdaCase : replaced by use of lambda and case of
 
 BangPatterns : replaced by use of seq
 
-Typeable, Generic, NFData (deepseq) : gone
+Typeable, Generic : gone, NFData instances for deepseq implemented by hand
 
 DeriveFunctor, GeneralizedNewtypeDeriving, ... : implemented instances by hand
 
-OverloadedStrings is not present : must use parseBP_E (or fromString) explicitly
-
-Exception : use old non-extensible version
-
 coerce : replaced with (fmap) realToFrac
 
-Sound.Tidal.Show merged into Sound.Tidal.Pattern because Num needs Show in Hugs
+Sound.Tidal.Show merged into Sound.Tidal.Pattern because Num and IsString need Show in Hugs
 
 misc utility functions added:
 

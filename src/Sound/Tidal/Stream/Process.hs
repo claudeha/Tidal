@@ -25,7 +25,7 @@ module Sound.Tidal.Stream.Process where
 
 import           Control.Applicative       (pure, (<$>), (<|>))
 import           Control.Concurrent.MVar
-import qualified Control.Exception.Compat  as E
+import qualified Control.Exception         as E
 import           Control.Monad             (forM_, when)
 import qualified Data.Map.Strict           as Map
 import           Data.Maybe                (catMaybes, fromJust, fromMaybe)

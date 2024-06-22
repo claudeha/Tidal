@@ -32,6 +32,7 @@ import           Control.Monad                          (ap)
 import           Control.Monad.Identity                 (Identity)
 import           Data.Maybe
 import           Data.Ratio
+import           Data.String
 import           Sound.Tidal.Chords
 import           Sound.Tidal.Core
 import           Sound.Tidal.Pattern
@@ -325,7 +326,8 @@ instance Enumerable ColourD where
   fromThenTo a b c = fastFromList [a,b,c]
 -}
 
-fromString s = parseBP_E s
+instance (Show a, Enumerable a, Parseable a) => IsString (Pattern a) where
+  fromString = parseBP_E
 
 lexer   = P.makeTokenParser haskellDef
 

@@ -18,6 +18,8 @@ module Sound.Tidal.ID (ID(..)) where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
+import Data.String
+
 -- | Wrapper for literals that can be coerced to a string and used as an identifier.
 -- | Similar to Show typeclass, but constrained to strings and integers and designed
 -- | so that similar cases (such as 1 and "1") convert to the same value.
@@ -35,4 +37,5 @@ instance Num ID where
   signum = noOv "signum"
   (-) = noOv "-"
 
-fromString = ID
+instance IsString ID where
+  fromString = ID
