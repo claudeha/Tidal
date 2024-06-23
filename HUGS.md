@@ -77,17 +77,13 @@ check it still works with ghc:
 ghci \
   -package containers \
   -package deepseq \
-  -package hosc \
   -package mtl \
-  -package network \
   -package parsec \
   -package random \
-  -package stm \
   -XOverloadedStrings \
   -XOverlappingInstances \
   -XUndecidableInstances \
-  -ighc:src:tidal-link/src/hs \
-  tidal-link/link/build/libabl_link.so \
+  -ighc:src \
   Sound.Tidal.Context
 ```
 
