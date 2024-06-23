@@ -2,21 +2,74 @@
 
 you need Hugs2019 plus experimental OverloadedStrings from:
 <https://github.com/claudeha/Hugs/tree/OverloadedStrings>
-(which was forked from <https://github.com/cjacker/Hugs>):
+(which was forked from <https://github.com/cjacker/Hugs>)
+
+## deepseq
+
+Hugs2019 fork does not (yet) bundle the deepseq package.
+replace `${HOME}/opt/hugs` with your Hugs installation prefix:
 
 ```
-hugs -98 +o -E"nano +%d %s" -P:hugs:src:tidal-link/src/hs Sound.Tidal.Context
+wget https://hackage.haskell.org/package/deepseq-1.1.0.2/deepseq-1.1.0.2.tar.gz
+tar xaf deepseq-1.1.0.2.tar.gz
+cd deepseq-1.1.0.2
+runhugs -98 Setup.hs configure --prefix=${HOME}/opt/hugs
+runhugs -98 Setup.hs build
+runhugs -98 Setup.hs install
 ```
 
-(after building/patching `Link.so` as below)
+## install
 
-OSC output is broken for now,
+Replace `${HOME}/opt/hugs` with your installation prefix:
+
+```
+runhugs -98 Setup.hs configure --prefix=${HOME}/opt/hugs
+runhugs -98 Setup.hs build
+runhugs -98 Setup.hs install
+```
+
+## run
+
+After installing, assuming your installed Hugs is in your shell path:
+
+```
+runhugs -98 +o -E"nano +d %s" Sound.Tidal.Context
+```
+
+Use `:f echoWith` (for example) to jump to source code of definitions
+(`Ctrl x` to exit the nano text editor).
+
+## hacking
+
+To run without installing from the Tidal source directory:
+
+```
+hugs -98 +o -E"nano +%d %s" -Phugs:src: Sound.Tidal.Context
+```
+
+Then use `:e` when an error occurs to edit the offending line.
+
+Hugs may get confused with already-installed tidal,
+you can delete or move `${HOME}/opt/hugs/lib/hugs/packages/tidal`
+out of the way (replacing `${HOME}/opt/hugs` with your Hugs
+installation directory.
+
+## caveats
+
+all realtime stuff is gone:
+
+- no stateful REPL for triggering patterns
+- no OSC to make other software make sounds
+- no Ableton Link to keep in sync with peers
+
 but you can print and draw patterns in the REPL:
 
 ```
 > s "[bd sn, hh*4]"
 > drawLine "x ~ o ~"
 ```
+
+## ghc
 
 check it still works with ghc:
 
@@ -36,49 +89,6 @@ ghci \
   -ighc:src:tidal-link/src/hs \
   tidal-link/link/build/libabl_link.so \
   Sound.Tidal.Context
-```
-
-## deepseq
-
-use correct `--prefix` for your Hugs installation:
-
-```
-wget https://hackage.haskell.org/package/deepseq-1.1.0.2/deepseq-1.1.0.2.tar.gz
-tar xaf deepseq-1.1.0.2.tar.gz
-cd deepseq-1.1.0.2
-runhugs -98 Setup.hs configure --prefix=${HOME}/Hugs
-runhugs -98 Setup.hs build
-runhugs -98 Setup.hs install
-```
-
-## tidal-link FFI
-
-### for hugs
-
-there are some patches in `tidal-link/src/hs/Sound/Tidal`
-for compiling `tidal-link` with `ffihugs`:
-
-```
-hsc2hs-hugs -o tidal-link/src/hs/Sound/Tidal/Link.hs -I tidal-link/link/extensions/abl_link/include/ tidal-link/src/hs/Sound/Tidal/Link.hsc
-ffihugs -98 -P:hugs tidal-link/src/hs/Sound/Tidal/Link.hs -Itidal-link/link/extensions/abl_link/include
-# the previous command fails and prints a build command, but continue:
-patch -p1 -F3 < tidal-link/src/hs/Sound/Tidal/ffihugs-ableton-link-fixes.patch
-# rerun the failed build command, in my case it was:
-gcc -Wall -fPIC -std=gnu89   -shared -fPIC -D__HUGS__ "-I/usr/lib/hugs/include" -o "tidal-link/src/hs/Sound/Tidal/Link.so" "tidal-link/src/hs/Sound/Tidal/Link.c" -Itidal-link/link/extensions/abl_link/include
-```
-
-you should now have a `Link.hs` and `Link.so` that you can use in Hugs
-
-### for ghci
-
-you need a shared `abl_link` library for `ghci`:
-
-```
-mkdir tidal-link/link/build
-cd tidal-link/link/build
-cmake -DCMAKE_CXX_FLAGS=-fPIC -DLINK_BUILD_TESTS=OFF ..
-make
-g++ -shared -Wl,--whole-archive libabl_link.a -Wl,--no-whole-archive -o libabl_link.so
 ```
 
 ## benchmarks
@@ -130,6 +140,13 @@ adds about 0.2 seconds for all implementations
 
 ## Changes
 
+non-realtime only
+
+- dropped Sound.Tidal.Stream
+- dropped Sound.Tidal.Transition
+- no OSC (so no sound)
+- no Link (so no sync with peers)
+
 compatibility shims in hugs/ vs ghc/ directories
 
 import Prelude hiding replaced with custom MyPrelude
@@ -159,7 +176,7 @@ misc utility functions added:
 
 Parsec
 
-- adapted to old version bundled with Hugs on Debian
+- adapted to older version bundled with Hugs
 - error messages may be poor
 - chords are commented out for now, as Hugs doesn't have GADTs
 - the rest of TPat is converted to a regular ADT
@@ -168,11 +185,6 @@ Colour
 
 - commented out for now
 - need to see if dependency package can be used with Hugs
-
-OSC
-
-- Sound/Tidal/Stream/Target.hs has various hacks
-- it is broken/non-functional
 
 Text
 
@@ -186,7 +198,3 @@ CPP
 Paths_tidal
 
 - custom hardcoded thing for Hugs
-
-STM
-
-- Hugs doesn't have retry, patched to do retries manually with busy loop and yield...

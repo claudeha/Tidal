@@ -1,4 +1,4 @@
-cabal-version:       2.0
+cabal-version:       >= 1.2
 
 name:                tidal
 version:             1.10.0
@@ -22,6 +22,7 @@ library
   ghc-options: -Wall
   hs-source-dirs:
                  src
+                 hugs
 
   default-language:    Haskell2010
 
@@ -38,25 +39,20 @@ library
                        Sound.Tidal.ParseBP
                        Sound.Tidal.Pattern
                        Sound.Tidal.Scales
-                       Sound.Tidal.Safe.Context
                        Sound.Tidal.Safe.Boot
+                       Sound.Tidal.Safe.Context
                        Sound.Tidal.Show
                        Sound.Tidal.Simple
                        Sound.Tidal.Stepwise
-                       Sound.Tidal.Stream
-                       Sound.Tidal.Stream.Config
-                       Sound.Tidal.Stream.Listen
-                       Sound.Tidal.Stream.Main
-                       Sound.Tidal.Stream.Process
-                       Sound.Tidal.Stream.Target
-                       Sound.Tidal.Stream.Types
-                       Sound.Tidal.Stream.UI
                        Sound.Tidal.Time
-                       Sound.Tidal.Transition
                        Sound.Tidal.UI
                        Sound.Tidal.Utils
                        Sound.Tidal.Version
                        Paths_tidal
+  Other-modules:       Data.Map.Strict
+                       Data.Semigroup
+                       MyPrelude
+                       Parsec.Compat
   Build-depends:
       base >=4.8 && <5
     , containers < 0.8

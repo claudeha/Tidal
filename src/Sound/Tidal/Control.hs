@@ -32,9 +32,11 @@ import           Data.Ratio
 import           Sound.Tidal.Core
 import qualified Sound.Tidal.Params       as P
 import           Sound.Tidal.Pattern
-import           Sound.Tidal.Stream.Types (patternTimeID)
 import           Sound.Tidal.UI
 import           Sound.Tidal.Utils
+
+patternTimeID :: String
+patternTimeID = "_t_pattern"
 
 {- | `spin` will "spin" and layer up a pattern the given number of times,
 with each successive layer offset in time by an additional @1/n@ of a cycle,
