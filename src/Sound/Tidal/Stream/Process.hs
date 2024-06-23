@@ -1,6 +1,4 @@
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module Sound.Tidal.Stream.Process where
@@ -85,7 +83,7 @@ doTick :: MVar ValueMap                           -- pattern state
        -> Clock.LinkOperations                    -- ableton link operations
        -> IO ()
 doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
-  E.handle (\(e :: E.SomeException) -> do
+  E.handle (\ (e :: E.SomeException) -> do
     hPutStrLn stderr $ "Failed to Stream.doTick: " ++ show e
     hPutStrLn stderr $ "Return to previous pattern."
     setPreviousPatternOrSilence playMV) (do
