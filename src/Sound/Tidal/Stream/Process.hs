@@ -1,5 +1,11 @@
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 
 module Sound.Tidal.Stream.Process where
 
@@ -21,10 +27,11 @@ module Sound.Tidal.Stream.Process where
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-import           Control.Applicative       (pure, (<$>), (<|>))
+import           Control.Applicative       ((<|>))
 import           Control.Concurrent.MVar
 import qualified Control.Exception         as E
 import           Control.Monad             (forM_, when)
+import           Data.Coerce               (coerce)
 import qualified Data.Map.Strict           as Map
 import           Data.Maybe                (catMaybes, fromJust, fromMaybe)
 import           Foreign.C.Types
@@ -32,6 +39,7 @@ import           System.IO                 (hPutStrLn, stderr)
 
 import qualified Sound.Osc.Fd              as O
 
+import           Data.List                 (sortOn)
 import qualified Sound.Tidal.Clock         as Clock
 import           Sound.Tidal.Core          (stack, (#))
 import           Sound.Tidal.ID
@@ -40,7 +48,7 @@ import           Sound.Tidal.Params        (pS)
 import           Sound.Tidal.Pattern
 import           Sound.Tidal.Show          ()
 import           Sound.Tidal.Stream.Config
-import           Sound.Tidal.Utils         ((!!!), sortOn)
+import           Sound.Tidal.Utils         ((!!!))
 
 import           Sound.Tidal.Stream.Target
 import           Sound.Tidal.Stream.Types
@@ -95,7 +103,6 @@ doTick stateMV busMV playMV globalFMV cxs listen (st,end) nudge ops =
       let
         patstack = sGlobalF $ playStack pMap
         cps = ((Clock.beatToCycles ops) bpm) / 60
-        coerce = realToFrac
         sMap' = Map.insert "_cps" (VF $ coerce cps) sMap
         extraLatency = nudge
         -- First the state is used to query the pattern
@@ -133,7 +140,6 @@ processCps ops = mapM processEvent
       onPart <- (Clock.timeAtBeat ops) partStartBeat
       when (eventHasOnset e) (do
         let cps' = Map.lookup "cps" (value e) >>= getF
-            coerce = fmap realToFrac
         maybe (return ()) (\newCps -> (Clock.setTempo ops) ((Clock.cyclesToBeat ops) (newCps * 60)) on) $ coerce cps'
         )
       off <- (Clock.timeAtBeat ops) offBeat
@@ -176,8 +182,7 @@ toOSC busses pe osc@(OSC _ _)
         -- Only events that start within the current nowArc are included
         playmsg | peHasOnset pe = do
                   -- If there is already cps in the event, the union will preserve that.
-                  let coerce = realToFrac
-                      extra = Map.fromList [("cps", (VF (coerce $! peCps pe))),
+                  let extra = Map.fromList [("cps", (VF (coerce $! peCps pe))),
                                           ("delta", VF (Clock.addMicrosToOsc (peDelta pe) 0)),
                                           ("cycle", VF (fromRational (peCycle pe)))
                                         ]
@@ -301,12 +306,12 @@ onSingleTick config clockRef stateMV busMV _ globalFMV cxs listen pat = do
 
 -- Used for Tempo callback
 updatePattern :: Stream -> ID -> Time -> ControlPattern -> IO ()
-updatePattern stream k t pat = t `seq` do
+updatePattern stream k !t pat = do
   let x = queryArc pat (Arc 0 0)
   pMap <- seq x $ takeMVar (sPMapMV stream)
   let playState = updatePS $ Map.lookup (fromID k) pMap
   putMVar (sPMapMV stream) $ Map.insert (fromID k) playState pMap
-  where updatePS (Just playState) = playState {psPattern = pat', psHistory = pat:(psHistory playState)}
+  where updatePS (Just playState) = do playState {psPattern = pat', psHistory = pat:(psHistory playState)}
         updatePS Nothing = PlayState pat' False False [pat']
         patControls = Map.singleton patternTimeID (VR t)
         pat' = withQueryControls (Map.union patControls)

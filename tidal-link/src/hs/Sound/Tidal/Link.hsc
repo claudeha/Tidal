@@ -6,7 +6,6 @@ module Sound.Tidal.Link where
 
 import Foreign
 import Foreign.C.Types
-import Foreign.Compat
 import Data.Int()
 
 data AbletonLinkImpl
