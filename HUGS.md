@@ -33,8 +33,10 @@ runhugs -98 Setup.hs install
 After installing, assuming your installed Hugs is in your shell path:
 
 ```
-runhugs -98 +o -E"nano +d %s" Sound.Tidal.Context
+hugs -98 +o -E"nano +d %s" Sound.Tidal.Context
 ```
+
+Quit with `:q`.
 
 Use `:f echoWith` (for example) to jump to source code of definitions
 (`Ctrl x` to exit the nano text editor).
