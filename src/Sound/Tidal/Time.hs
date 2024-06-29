@@ -3,6 +3,7 @@ module Sound.Tidal.Time where
 import           Control.Applicative
 import           Control.DeepSeq
 import           Data.Ratio
+import           Data.Typeable
 
 -- | Time is rational
 type Time = Rational
@@ -12,6 +13,9 @@ data ArcF a = Arc
   { start :: a
   , stop  :: a
   } deriving (Eq, Ord)
+
+instance Typeable1 ArcF where
+  typeOf1 _ = mkTyConApp (mkTyCon "Sound.Tidal.Time.ArcF") []
 
 instance Functor ArcF where
   fmap f (Arc a b) = Arc (f a) (f b)

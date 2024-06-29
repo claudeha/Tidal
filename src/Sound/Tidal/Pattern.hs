@@ -32,6 +32,7 @@ import qualified Data.Map.Strict     as Map
 import           Data.Maybe          (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 import           Data.Monoid
 import           Data.Semigroup
+import           Data.Typeable
 import           Data.Ord            (comparing)
 import           Data.Ratio          (denominator, numerator)
 import           Data.Word           (Word8)
@@ -46,9 +47,17 @@ import           Sound.Tidal.Utils   ((>=>), intercalate, sortOn)
 data State = State {arc      :: Arc,
                     controls :: ValueMap
                    }
+instance Typeable State where
+  typeOf _ = mkTyConApp (mkTyCon "Sound.Tidal.Pattern.State") []
 
 -- | A datatype representing events taking place over time
 data Pattern a = Pattern {query :: State -> [Event a], tactus :: Maybe Rational, pureValue :: Maybe a}
+
+instance Typeable a => Typeable (Pattern a) where
+  typeOf = typeOfDefault
+
+instance Typeable1 Pattern where
+  typeOf1 _ = mkTyConApp (mkTyCon "Sound.Tidal>Pattern.Pattern") []
 
 instance NFData a => NFData (Pattern a) where
   rnf (Pattern q t v) = q `seq` rnf t `seq` rnf v
@@ -835,6 +844,9 @@ data EventF a b = Event
   , value   :: b
   } deriving (Eq, Ord)
 
+instance Typeable2 EventF where
+  typeOf2 _ = mkTyConApp (mkTyCon "Sound.Tidal.Pattern.EventF") []
+
 instance Functor (EventF a) where
   fmap f (Event c w p v) = Event c w p (f v)
 
@@ -938,6 +950,9 @@ data Value = VS { svalue :: String   }
            | VPattern {pvalue :: Pattern Value}
            | VList {lvalue :: [Value]}
            | VState {statevalue :: ValueMap -> (ValueMap, Value)}
+
+instance Typeable Value where
+  typeOf _ = mkTyConApp (mkTyCon "Sound.Tidal.Pattern.Value") []
 
 instance NFData Value where
   rnf (VS v) = rnf v
